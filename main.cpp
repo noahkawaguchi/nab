@@ -5,7 +5,9 @@
 #include <pcapplusplus/RawPacket.h>
 #include <thread>
 
-/** Lists available network interfaces */
+std::atomic<bool> packet_received{false};
+
+/** Lists available network interfaces. */
 void list_devices() {
   const auto &devices = pcpp::PcapLiveDeviceList::getInstance().getPcapLiveDevicesList();
 
@@ -18,16 +20,33 @@ void list_devices() {
   }
 }
 
-std::atomic<bool> packet_received{false};
-
 void on_packet(pcpp::RawPacket *raw_packet, pcpp::PcapLiveDevice * /*unused*/, void * /*unused*/) {
-  std::cout << "Captured packet:\n";
-  std::cout << "  Length: " << raw_packet->getRawDataLen() << " bytes\n";
-  std::cout << "  First 20 bytes (hex): ";
-
   const uint8_t *data = raw_packet->getRawData();
-  for (int i = 0; i < 20 && i < raw_packet->getRawDataLen(); i++) {
-    std::cout << std::format("{:02x} ", data[i]);
+  const int len = raw_packet->getRawDataLen();
+
+  std::cout << "Captured packet: " << len << " bytes\n";
+
+  if (len < 14) {
+    std::cout << "  Too short for Ethernet\n";
+    packet_received = true;
+    return;
+  }
+
+  // Ethernet header: 6 bytes dest MAC, 6 bytes src MAC, 2 bytes ethertype
+  std::cout << std::format("  Dst MAC: {:02x}:{:02x}:{:02x}:{:02x}:{:02x}:{:02x}\n", data[0],
+                           data[1], data[2], data[3], data[4], data[5]);
+  std::cout << std::format("  Src MAC: {:02x}:{:02x}:{:02x}:{:02x}:{:02x}:{:02x}\n", data[6],
+                           data[7], data[8], data[9], data[10], data[11]);
+
+  // Ethertype is big-endian
+  const uint16_t ethertype = (data[12] << 8) | data[13];
+  std::cout << std::format("  EtherType: 0x{:04x}", ethertype);
+
+  switch (ethertype) {
+  case 0x0800: std::cout << " (IPv4)"; break;
+  case 0x0806: std::cout << " (ARP)"; break;
+  case 0x86DD: std::cout << " (IPv6)"; break;
+  default: std::cout << " (unknown)"; break;
   }
   std::cout << '\n';
 
@@ -50,7 +69,7 @@ auto capture_packet() -> int {
     return 1;
   }
 
-  std::cout << "Using interface: " << device->getName() << "\n";
+  std::cout << "Using interface: " << device->getName() << '\n';
 
   if (!device->open()) {
     std::cerr << "Failed to open device\n";
