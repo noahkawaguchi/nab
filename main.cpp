@@ -2,8 +2,11 @@
 #include <csignal>
 #include <format>
 #include <iostream>
+#include <memory>
+#include <pcapplusplus/PcapFileDevice.h>
 #include <pcapplusplus/PcapLiveDeviceList.h>
 #include <pcapplusplus/RawPacket.h>
+#include <string>
 #include <thread>
 
 std::atomic<bool> stop_capture{false};
@@ -15,11 +18,15 @@ void signal_handler(int /*signal*/) {
   stop_capture = true;
 }
 
-void on_packet(pcpp::RawPacket *raw_packet, pcpp::PcapLiveDevice * /*unused*/, void * /*unused*/) {
+void on_packet(pcpp::RawPacket *raw_packet, pcpp::PcapLiveDevice * /*unused*/, void *cookie) {
   const uint8_t *data{raw_packet->getRawData()};
   const int len{raw_packet->getRawDataLen()};
 
   const int count{++packet_count};
+
+  // Write packet to file if writer is provided
+  auto *writer = static_cast<pcpp::PcapFileWriterDevice *>(cookie);
+  if (writer != nullptr) { writer->writePacket(*raw_packet); }
 
   // Packet length must be enough for valid Ethernet header
   if (len < 14) {
@@ -141,9 +148,24 @@ void on_packet(pcpp::RawPacket *raw_packet, pcpp::PcapLiveDevice * /*unused*/, v
   }
 }
 
-auto capture_packet() -> int {
+auto capture_packet(const std::string &output_file_name) -> int {
   // Set up signal handler for Ctrl+C
   std::signal(SIGINT, signal_handler);
+
+  std::unique_ptr<pcpp::PcapFileWriterDevice> writer{nullptr};
+
+  // Set up pcap file writer if output file is specified
+  if (!output_file_name.empty()) {
+    writer =
+        std::make_unique<pcpp::PcapFileWriterDevice>(output_file_name, pcpp::LINKTYPE_ETHERNET);
+
+    if (!writer->open()) {
+      std::cerr << "Failed to open output file: " << output_file_name << '\n';
+      return 1;
+    }
+
+    std::cout << "Writing packets to: " << output_file_name << '\n';
+  }
 
   // Get the first non-loopback device
   pcpp::PcapLiveDevice *device{nullptr};
@@ -168,7 +190,7 @@ auto capture_packet() -> int {
   }
 
   std::cout << "Capturing packets... (Press Ctrl+C to stop)\n";
-  device->startCapture(on_packet, nullptr);
+  device->startCapture(on_packet, writer.get());
 
   // Keep capturing until Ctrl+C
   while (!stop_capture) { std::this_thread::sleep_for(std::chrono::milliseconds(100)); }
@@ -176,15 +198,44 @@ auto capture_packet() -> int {
   device->stopCapture();
   device->close();
 
+  // Close pcap writer if it was opened
+  if (writer != nullptr) { writer->close(); }
+
   const int total = packet_count.load();
   const int ssh = ssh_packet_count.load();
   const int non_ssh = total - ssh;
 
-  std::cout << "\nTotal packets captured: " << total << '\n';
-  std::cout << "  SSH packets (filtered): " << ssh << '\n';
-  std::cout << "  Non-SSH packets (displayed): " << non_ssh << '\n';
+  std::cout << "\nTotal packets captured: " << total << '\n'
+            << "  SSH packets (filtered): " << ssh << '\n'
+            << "  Non-SSH packets (displayed): " << non_ssh << '\n';
+
+  if (!output_file_name.empty()) {
+    std::cout << "Packets written to: " << output_file_name << '\n';
+  }
 
   return 0;
 }
 
-auto main() -> int { return capture_packet(); }
+auto main(int argc, char *argv[]) -> int {
+  std::string output_file_name{};
+
+  // Simple argument parsing for -o flag
+  for (int i = 1; i < argc; i++) {
+    std::string arg{argv[i]};
+
+    if (arg == "-o" && i + 1 < argc) {
+      output_file_name = argv[i + 1];
+      i++; // Skip next argument
+    } else if (arg == "--help" || arg == "-h") {
+      std::cout << "Usage: " << argv[0] << " [-o output.pcap]\n"
+                << "  -o <file>  Write captured packets to pcap file\n";
+      return 0;
+    } else {
+      std::cerr << "Unknown argument: " << arg << '\n'
+                << "Use -h or --help for usage information\n";
+      return 1;
+    }
+  }
+
+  return capture_packet(output_file_name);
+}
