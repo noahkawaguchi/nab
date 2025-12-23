@@ -50,6 +50,44 @@ void on_packet(pcpp::RawPacket *raw_packet, pcpp::PcapLiveDevice * /*unused*/, v
   }
   std::cout << '\n';
 
+  // Parse IPv4 if present
+  if (ethertype == 0x0800) {
+    // IPv4 header starts after Ethernet header (14 bytes)
+    if (len < 14 + 20) {
+      std::cout << "  Too short for IPv4 header\n";
+      packet_received = true;
+      return;
+    }
+
+    const uint8_t *ip_header = data + 14;
+
+    // Byte 0: version (top 4 bits) and header length (bottom 4 bits)
+    const uint8_t version = (ip_header[0] >> 4) & 0x0F;
+    const uint8_t ihl = ip_header[0] & 0x0F; // Header length in 32-bit words
+
+    // Byte 9: protocol
+    const uint8_t protocol = ip_header[9];
+
+    // Bytes 12-15: source IP (4 bytes)
+    const uint8_t *src_ip = &ip_header[12];
+
+    // Bytes 16-19: destination IP (4 bytes)
+    const uint8_t *dst_ip = &ip_header[16];
+
+    std::cout << std::format("  IPv4: version={}, header_len={} bytes\n", version, ihl * 4);
+    std::cout << std::format("  Src IP: {}.{}.{}.{}\n", src_ip[0], src_ip[1], src_ip[2], src_ip[3]);
+    std::cout << std::format("  Dst IP: {}.{}.{}.{}\n", dst_ip[0], dst_ip[1], dst_ip[2], dst_ip[3]);
+    std::cout << std::format("  Protocol: {}", protocol);
+
+    switch (protocol) {
+    case 1: std::cout << " (ICMP)"; break;
+    case 6: std::cout << " (TCP)"; break;
+    case 17: std::cout << " (UDP)"; break;
+    default: std::cout << " (other)"; break;
+    }
+    std::cout << '\n';
+  }
+
   packet_received = true;
 }
 
