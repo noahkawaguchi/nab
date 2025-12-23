@@ -73,6 +73,49 @@ void on_packet(pcpp::RawPacket *raw_packet, pcpp::PcapLiveDevice * /*unused*/, v
     default: std::cout << " (other)"; break;
     }
     std::cout << '\n';
+
+    // Parse TCP/UDP if present
+    if (protocol == 6 || protocol == 17) {
+      // Transport layer header starts after IP header
+      const int ip_header_len{ihl * 4};
+      const int transport_offset{14 + ip_header_len};
+
+      // TCP needs at least 20 bytes, UDP needs at least 8 bytes
+      const int min_transport_len{(protocol == 6) ? 20 : 8};
+
+      if (len < transport_offset + min_transport_len) {
+        std::cout << "  Too short for TCP/UDP header\n";
+        packet_received = true;
+        return;
+      }
+
+      const uint8_t *transport_header{data + transport_offset};
+
+      // Both TCP and UDP have ports in the same location:
+      // Bytes 0-1: source port (big-endian)
+      // Bytes 2-3: destination port (big-endian)
+      const auto src_port = static_cast<uint16_t>((transport_header[0] << 8) | transport_header[1]);
+      const auto dst_port = static_cast<uint16_t>((transport_header[2] << 8) | transport_header[3]);
+
+      // Show well-known port names
+      std::cout << std::format("  Src Port: {}", src_port);
+      switch (src_port) {
+      case 80: std::cout << " (HTTP)"; break;
+      case 443: std::cout << " (HTTPS)"; break;
+      case 53: std::cout << " (DNS)"; break;
+      case 22: std::cout << " (SSH)"; break;
+      }
+      std::cout << '\n';
+
+      std::cout << std::format("  Dst Port: {}", dst_port);
+      switch (dst_port) {
+      case 80: std::cout << " (HTTP)"; break;
+      case 443: std::cout << " (HTTPS)"; break;
+      case 53: std::cout << " (DNS)"; break;
+      case 22: std::cout << " (SSH)"; break;
+      }
+      std::cout << '\n';
+    }
   }
 
   packet_received = true;
