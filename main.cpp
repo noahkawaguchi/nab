@@ -1,21 +1,28 @@
 #include <atomic>
+#include <csignal>
 #include <format>
 #include <iostream>
 #include <pcapplusplus/PcapLiveDeviceList.h>
 #include <pcapplusplus/RawPacket.h>
 #include <thread>
 
-std::atomic<bool> packet_received{false};
+std::atomic<bool> stop_capture{false};
+std::atomic<int> packet_count{0};
+
+void signal_handler(int /*signal*/) {
+  std::cout << "\nStopping capture...\n";
+  stop_capture = true;
+}
 
 void on_packet(pcpp::RawPacket *raw_packet, pcpp::PcapLiveDevice * /*unused*/, void * /*unused*/) {
   const uint8_t *data{raw_packet->getRawData()};
   const int len{raw_packet->getRawDataLen()};
 
-  std::cout << "Captured packet: " << len << " bytes\n";
+  packet_count++;
+  std::cout << "\n--- Packet #" << packet_count << " (" << len << " bytes) ---\n";
 
   if (len < 14) {
     std::cout << "  Too short for Ethernet\n";
-    packet_received = true;
     return;
   }
 
@@ -42,7 +49,6 @@ void on_packet(pcpp::RawPacket *raw_packet, pcpp::PcapLiveDevice * /*unused*/, v
     // IPv4 header starts after Ethernet header (14 bytes)
     if (len < 14 + 20) {
       std::cout << "  Too short for IPv4 header\n";
-      packet_received = true;
       return;
     }
 
@@ -85,7 +91,6 @@ void on_packet(pcpp::RawPacket *raw_packet, pcpp::PcapLiveDevice * /*unused*/, v
 
       if (len < transport_offset + min_transport_len) {
         std::cout << "  Too short for TCP/UDP header\n";
-        packet_received = true;
         return;
       }
 
@@ -117,11 +122,12 @@ void on_packet(pcpp::RawPacket *raw_packet, pcpp::PcapLiveDevice * /*unused*/, v
       std::cout << '\n';
     }
   }
-
-  packet_received = true;
 }
 
 auto capture_packet() -> int {
+  // Set up signal handler for Ctrl+C
+  std::signal(SIGINT, signal_handler);
+
   // Get the first non-loopback device
   pcpp::PcapLiveDevice *device{nullptr};
 
@@ -144,17 +150,16 @@ auto capture_packet() -> int {
     return 1;
   }
 
-  std::cout << "Waiting for a packet...\n";
-
+  std::cout << "Capturing packets... (Press Ctrl+C to stop)\n";
   device->startCapture(on_packet, nullptr);
 
-  while (!packet_received) {
-    // Sleep a bit to avoid burning CPU
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
-  }
+  // Keep capturing until Ctrl+C
+  while (!stop_capture) { std::this_thread::sleep_for(std::chrono::milliseconds(100)); }
 
   device->stopCapture();
   device->close();
+
+  std::cout << "\nTotal packets captured: " << packet_count << '\n';
 
   return 0;
 }
