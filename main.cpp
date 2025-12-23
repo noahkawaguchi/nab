@@ -7,22 +7,9 @@
 
 std::atomic<bool> packet_received{false};
 
-/** Lists available network interfaces. */
-void list_devices() {
-  const auto &devices = pcpp::PcapLiveDeviceList::getInstance().getPcapLiveDevicesList();
-
-  std::cout << "Available interfaces:\n";
-
-  for (const auto *device : devices) {
-    std::cout << "  " << device->getName();
-    if (!device->getDesc().empty()) { std::cout << " (" << device->getDesc() << ")"; }
-    std::cout << '\n';
-  }
-}
-
 void on_packet(pcpp::RawPacket *raw_packet, pcpp::PcapLiveDevice * /*unused*/, void * /*unused*/) {
-  const uint8_t *data = raw_packet->getRawData();
-  const int len = raw_packet->getRawDataLen();
+  const uint8_t *data{raw_packet->getRawData()};
+  const int len{raw_packet->getRawDataLen()};
 
   std::cout << "Captured packet: " << len << " bytes\n";
 
@@ -39,7 +26,7 @@ void on_packet(pcpp::RawPacket *raw_packet, pcpp::PcapLiveDevice * /*unused*/, v
                            data[7], data[8], data[9], data[10], data[11]);
 
   // Ethertype is big-endian
-  const uint16_t ethertype = (data[12] << 8) | data[13];
+  const auto ethertype = static_cast<uint16_t>((data[12] << 8) | data[13]);
   std::cout << std::format("  EtherType: 0x{:04x}", ethertype);
 
   switch (ethertype) {
@@ -59,20 +46,20 @@ void on_packet(pcpp::RawPacket *raw_packet, pcpp::PcapLiveDevice * /*unused*/, v
       return;
     }
 
-    const uint8_t *ip_header = data + 14;
+    const uint8_t *ip_header{data + 14};
 
     // Byte 0: version (top 4 bits) and header length (bottom 4 bits)
-    const uint8_t version = (ip_header[0] >> 4) & 0x0F;
-    const uint8_t ihl = ip_header[0] & 0x0F; // Header length in 32-bit words
+    const auto version = static_cast<uint8_t>((ip_header[0] >> 4) & 0x0F);
+    const auto ihl = static_cast<uint8_t>(ip_header[0] & 0x0F); // Header length in 32-bit words
 
     // Byte 9: protocol
-    const uint8_t protocol = ip_header[9];
+    const uint8_t protocol{ip_header[9]};
 
     // Bytes 12-15: source IP (4 bytes)
-    const uint8_t *src_ip = &ip_header[12];
+    const uint8_t *src_ip{&ip_header[12]};
 
     // Bytes 16-19: destination IP (4 bytes)
-    const uint8_t *dst_ip = &ip_header[16];
+    const uint8_t *dst_ip{&ip_header[16]};
 
     std::cout << std::format("  IPv4: version={}, header_len={} bytes\n", version, ihl * 4);
     std::cout << std::format("  Src IP: {}.{}.{}.{}\n", src_ip[0], src_ip[1], src_ip[2], src_ip[3]);
@@ -93,7 +80,7 @@ void on_packet(pcpp::RawPacket *raw_packet, pcpp::PcapLiveDevice * /*unused*/, v
 
 auto capture_packet() -> int {
   // Get the first non-loopback device
-  pcpp::PcapLiveDevice *device = nullptr;
+  pcpp::PcapLiveDevice *device{nullptr};
 
   for (auto *dev : pcpp::PcapLiveDeviceList::getInstance().getPcapLiveDevicesList()) {
     if (dev->getName() != "lo") {
@@ -129,7 +116,4 @@ auto capture_packet() -> int {
   return 0;
 }
 
-auto main() -> int {
-  list_devices();
-  return capture_packet();
-}
+auto main() -> int { return capture_packet(); }
