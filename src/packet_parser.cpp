@@ -1,13 +1,21 @@
 #include "packet_parser.hpp"
 
 #include <cstddef>
+#include <cstdint>
 #include <format>
 
 #include "protocol_types.hpp"
 
 namespace {
+
 constexpr std::size_t ETHERNET_BYTES{14};
 constexpr std::size_t IPV4_BYTES{20};
+
+constexpr std::uint16_t HTTP_PORT{80};
+constexpr std::uint16_t HTTPS_PORT{443};
+constexpr std::uint16_t DNS_PORT{53};
+constexpr std::uint16_t SSH_PORT{22};
+
 } // namespace
 
 namespace nab {
@@ -69,15 +77,15 @@ auto parse_ipv4_packet(std::span<const std::uint8_t> packet, ParsedPacket &parse
 
 auto is_ssh_packet(const ParsedPacket &packet) -> bool {
   if (!packet.src_port.has_value() || !packet.dst_port.has_value()) { return false; }
-  return packet.src_port.value() == 22 || packet.dst_port.value() == 22;
+  return packet.src_port.value() == SSH_PORT || packet.dst_port.value() == SSH_PORT;
 }
 
 auto get_service_name(const std::uint16_t port) -> std::string {
   switch (port) {
-  case 80: return "/HTTP";
-  case 443: return "/HTTPS";
-  case 53: return "/DNS";
-  case 22: return "/SSH";
+  case HTTP_PORT: return "/HTTP";
+  case HTTPS_PORT: return "/HTTPS";
+  case DNS_PORT: return "/DNS";
+  case SSH_PORT: return "/SSH";
   default: return "";
   }
 }
