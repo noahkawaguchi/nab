@@ -4,11 +4,13 @@
 #include <optional>
 #include <string>
 
+#include "protocol_types.hpp"
+
 namespace nab {
 
 // Parsed packet information needed for filtering
 struct ParsedPacket {
-  std::string protocol; // "tcp", "udp", "icmp", "arp", "ipv6", etc.
+  Protocol protocol{Protocol::Unknown};
   std::optional<std::uint16_t> src_port;
   std::optional<std::uint16_t> dst_port;
   std::optional<std::string> src_ip;
@@ -18,9 +20,9 @@ struct ParsedPacket {
 // Filter criteria for packet capture
 class PacketFilter {
 public:
-  PacketFilter(std::optional<std::string> protocol, std::optional<std::uint16_t> port,
+  PacketFilter(std::optional<Protocol> protocol, std::optional<std::uint16_t> port,
                std::optional<std::string> host)
-      : protocol_(std::move(protocol)), port_(port), host_(std::move(host)){};
+      : protocol_(protocol), port_(port), host_(std::move(host)){};
 
   [[nodiscard]] auto has_any_filter() const -> bool {
     return protocol_.has_value() || port_.has_value() || host_.has_value();
@@ -34,7 +36,7 @@ public:
   [[nodiscard]] auto description() const -> std::string;
 
 private:
-  std::optional<std::string> protocol_;
+  std::optional<Protocol> protocol_;
   std::optional<std::uint16_t> port_;
   std::optional<std::string> host_;
 };

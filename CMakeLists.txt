@@ -10,9 +10,10 @@ find_package(PcapPlusPlus REQUIRED)
 
 add_executable(nab
     src/main.cpp
+    src/capture_session.cpp
     src/packet_filter.cpp
     src/packet_parser.cpp
-    src/capture_session.cpp
+    src/protocol_types.cpp
 )
 
 target_link_libraries(nab PRIVATE PcapPlusPlus::PcapPlusPlus)

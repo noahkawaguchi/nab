@@ -7,6 +7,7 @@
 
 #include "capture_session.hpp"
 #include "packet_filter.hpp"
+#include "protocol_types.hpp"
 
 // Global session pointer for signal handler
 nab::CaptureSession *g_session{nullptr};
@@ -18,7 +19,7 @@ void signal_handler(int /*signal*/) {
 auto main(int argc, char *argv[]) -> int {
   const std::span args{argv, static_cast<std::size_t>(argc)};
   std::string output_file_name{};
-  std::optional<std::string> protocol{};
+  std::optional<nab::Protocol> protocol{};
   std::optional<std::uint16_t> port{};
   std::optional<std::string> host{};
 
@@ -33,15 +34,14 @@ auto main(int argc, char *argv[]) -> int {
 
     else if (arg == "--protocol" && i + 1 < argc) {
       std::string_view protocol_arg{args[i + 1]};
+      protocol.emplace(nab::parse_protocol(protocol_arg));
 
-      // Validate protocol
-      if (protocol_arg != "tcp" && protocol_arg != "udp" && protocol_arg != "icmp") {
+      if (protocol == nab::Protocol::Unknown) {
         std::cerr << "Invalid protocol: " << protocol_arg << '\n'
-                  << "Valid protocols: tcp, udp, icmp\n";
+                  << "Valid protocols: tcp, udp, icmp, igmp\n";
         return 1;
       }
 
-      protocol.emplace(protocol_arg);
       i++; // Skip next argument
     }
 

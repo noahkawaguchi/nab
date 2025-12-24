@@ -2,6 +2,8 @@
 
 #include <format>
 
+#include "protocol_types.hpp"
+
 namespace nab {
 
 auto PacketFilter::matches(const ParsedPacket &packet) const -> bool {
@@ -37,7 +39,9 @@ auto PacketFilter::matches(const ParsedPacket &packet) const -> bool {
 
 auto PacketFilter::description() const -> std::string {
   std::string desc = "Active filters:";
-  if (protocol_.has_value()) { desc += std::format(" protocol={}", protocol_.value()); }
+  if (protocol_.has_value()) {
+    desc += std::format(" protocol={}", protocol_to_string(protocol_.value()));
+  }
   if (port_.has_value()) { desc += std::format(" port={}", port_.value()); }
   if (host_.has_value()) { desc += std::format(" host={}", host_.value()); }
   return desc;

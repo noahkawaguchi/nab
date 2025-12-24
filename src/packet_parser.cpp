@@ -3,6 +3,8 @@
 #include <cstddef>
 #include <format>
 
+#include "protocol_types.hpp"
+
 namespace {
 constexpr std::size_t ETHERNET_BYTES{14};
 constexpr std::size_t IPV4_BYTES{20};
@@ -14,17 +16,17 @@ auto format_ip_address(std::span<const std::uint8_t, 4> ip) -> std::string {
   return std::format("{}.{}.{}.{}", ip[0], ip[1], ip[2], ip[3]);
 }
 
-auto parse_ethernet_header(std::span<const std::uint8_t> packet) -> std::optional<std::uint16_t> {
+auto parse_ethernet_header(std::span<const std::uint8_t> packet) -> std::optional<EtherType> {
   if (packet.size() < ETHERNET_BYTES) { return std::nullopt; }
   // EtherType is big-endian (2 bytes at offset 12-13)
-  return static_cast<std::uint16_t>((packet[12] << 8) | packet[13]);
+  return static_cast<EtherType>((packet[12] << 8) | packet[13]);
 }
 
 auto parse_ipv4_packet(std::span<const std::uint8_t> packet, ParsedPacket &parsed) -> bool {
-  // Need at least Ethernet (14) + IPv4 header (20)
+  // Need at least Ethernet + IPv4 header
   if (packet.size() < ETHERNET_BYTES + IPV4_BYTES) { return false; }
 
-  // IP header starts after Ethernet header (14 bytes)
+  // IP header starts after Ethernet header
   const auto ip_header = packet.subspan(ETHERNET_BYTES);
 
   // Byte 0: header length (bottom 4 bits) in 32-bit words
@@ -41,11 +43,10 @@ auto parse_ipv4_packet(std::span<const std::uint8_t> packet, ParsedPacket &parse
 
   parsed.src_ip = format_ip_address(src_ip);
   parsed.dst_ip = format_ip_address(dst_ip);
+  parsed.protocol = parse_protocol(protocol);
 
   // Parse TCP/UDP for ports
-  if (protocol == 6 || protocol == 17) {
-    parsed.protocol = (protocol == 6) ? "tcp" : "udp";
-
+  if (parsed.protocol == Protocol::TCP || parsed.protocol == Protocol::UDP) {
     const auto ip_header_len = static_cast<const std::size_t>(ihl * 4);
     const std::size_t transport_offset{14 + ip_header_len};
     const auto min_transport_len = static_cast<std::size_t>((protocol == 6) ? 20 : 8);
@@ -61,12 +62,6 @@ auto parse_ipv4_packet(std::span<const std::uint8_t> packet, ParsedPacket &parse
     // Bytes 2-3: destination port (big-endian)
     parsed.src_port = static_cast<std::uint16_t>((transport_header[0] << 8) | transport_header[1]);
     parsed.dst_port = static_cast<std::uint16_t>((transport_header[2] << 8) | transport_header[3]);
-  } else if (protocol == 1) {
-    parsed.protocol = "icmp";
-  } else if (protocol == 2) {
-    parsed.protocol = "igmp";
-  } else {
-    parsed.protocol = std::format("proto-{}", protocol);
   }
 
   return true;

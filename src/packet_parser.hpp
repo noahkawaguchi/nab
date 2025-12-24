@@ -6,6 +6,7 @@
 #include <string>
 
 #include "packet_filter.hpp"
+#include "protocol_types.hpp"
 
 namespace nab {
 
@@ -14,7 +15,7 @@ auto format_ip_address(std::span<const std::uint8_t, 4> ip) -> std::string;
 
 // Parse Ethernet header and return EtherType
 // Returns std::nullopt if packet is too short
-auto parse_ethernet_header(std::span<const std::uint8_t> packet) -> std::optional<std::uint16_t>;
+auto parse_ethernet_header(std::span<const std::uint8_t> packet) -> std::optional<EtherType>;
 
 // Parse IPv4 header and extract relevant information
 // Populates the ParsedPacket structure

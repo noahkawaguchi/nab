@@ -8,6 +8,7 @@
 #include <pcapplusplus/PcapLiveDeviceList.h>
 
 #include "packet_parser.hpp"
+#include "protocol_types.hpp"
 
 namespace nab {
 
@@ -107,7 +108,7 @@ void CaptureSession::handle_packet(pcpp::RawPacket *raw_packet) {
   }
 
   // Handle IPv4 packets
-  if (ethertype.value() == 0x0800) {
+  if (ethertype.value() == EtherType::IPv4) {
     ParsedPacket parsed;
     if (!parse_ipv4_packet(packet, parsed)) {
       std::cout << std::format("#{}: IPv4 (truncated, {}B)\n", count, len);
@@ -143,15 +144,7 @@ void CaptureSession::handle_packet(pcpp::RawPacket *raw_packet) {
     // Write packet to file if writer is provided
     if (writer_) { writer_->writePacket(*raw_packet); }
 
-    std::cout << std::format("#{}: ", count);
-
-    switch (ethertype.value()) {
-    case 0x0806: std::cout << "ARP"; break;
-    case 0x86DD: std::cout << "IPv6"; break;
-    default: std::cout << std::format("EtherType-0x{:04x}", ethertype.value()); break;
-    }
-
-    std::cout << std::format(" {}B\n", len);
+    std::cout << std::format("#{}: {} {}B\n", count, ethertype_to_string(ethertype.value()), len);
   }
 }
 
@@ -161,13 +154,13 @@ void CaptureSession::print_packet(const pcpp::RawPacket *raw_packet, const Parse
   const int len{raw_packet->getRawDataLen()};
 
   // Print based on protocol
-  if (parsed.protocol == "tcp" || parsed.protocol == "udp") {
+  if (parsed.protocol == Protocol::TCP || parsed.protocol == Protocol::UDP) {
     std::cout << std::format("#{}: {}:{} -> {}:{} ", count, parsed.src_ip.value(),
                              parsed.src_port.value(), parsed.dst_ip.value(),
                              parsed.dst_port.value());
 
     // Protocol name
-    std::cout << (parsed.protocol == "tcp" ? "TCP" : "UDP");
+    std::cout << protocol_to_string(parsed.protocol);
 
     // Add service name if it's a well-known port
     const std::string src_service = get_service_name(parsed.src_port.value());
@@ -183,17 +176,8 @@ void CaptureSession::print_packet(const pcpp::RawPacket *raw_packet, const Parse
     std::cout << std::format(" {}B\n", len);
   } else {
     // Non-TCP/UDP protocols (ICMP, etc.)
-    std::cout << std::format("#{}: {} -> {} ", count, parsed.src_ip.value(), parsed.dst_ip.value());
-
-    if (parsed.protocol == "icmp") {
-      std::cout << "ICMP";
-    } else if (parsed.protocol == "igmp") {
-      std::cout << "IGMP";
-    } else {
-      std::cout << parsed.protocol;
-    }
-
-    std::cout << std::format(" {}B\n", len);
+    std::cout << std::format("#{}: {} -> {} {} {}B\n", count, parsed.src_ip.value(),
+                             parsed.dst_ip.value(), protocol_to_string(parsed.protocol), len);
   }
 }
 
