@@ -9,10 +9,10 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 find_package(PcapPlusPlus REQUIRED)
 
 add_executable(nab
-    main.cpp
-    packet_filter.cpp
-    packet_parser.cpp
-    capture_session.cpp
+    src/main.cpp
+    src/packet_filter.cpp
+    src/packet_parser.cpp
+    src/capture_session.cpp
 )
 
 target_link_libraries(nab PRIVATE PcapPlusPlus::PcapPlusPlus)
