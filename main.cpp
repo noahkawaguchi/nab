@@ -1,6 +1,7 @@
 #include <csignal>
 #include <cstddef>
 #include <iostream>
+#include <optional>
 #include <span>
 #include <string>
 
@@ -15,13 +16,15 @@ void signal_handler(int /*signal*/) {
 }
 
 auto main(int argc, char *argv[]) -> int {
-  std::span args{argv, static_cast<std::size_t>(argc)};
+  const std::span args{argv, static_cast<std::size_t>(argc)};
   std::string output_file_name{};
-  nab::PacketFilter filter{};
+  std::optional<std::string> protocol{};
+  std::optional<uint16_t> port{};
+  std::optional<std::string> host{};
 
   // Parse command-line arguments
   for (int i = 1; i < argc; i++) {
-    std::string arg{args[i]};
+    const std::string arg{args[i]};
 
     if (arg == "-o" && i + 1 < argc) {
       output_file_name = args[i + 1];
@@ -29,23 +32,23 @@ auto main(int argc, char *argv[]) -> int {
     }
 
     else if (arg == "--protocol" && i + 1 < argc) {
-      std::string protocol{args[i + 1]};
+      std::string_view protocol_arg{args[i + 1]};
 
       // Validate protocol
-      if (protocol != "tcp" && protocol != "udp" && protocol != "icmp") {
-        std::cerr << "Invalid protocol: " << protocol << '\n'
+      if (protocol_arg != "tcp" && protocol_arg != "udp" && protocol_arg != "icmp") {
+        std::cerr << "Invalid protocol: " << protocol_arg << '\n'
                   << "Valid protocols: tcp, udp, icmp\n";
         return 1;
       }
 
-      filter.set_protocol(protocol);
+      protocol.emplace(protocol_arg);
       i++; // Skip next argument
     }
 
     else if (arg == "--port" && i + 1 < argc) {
       try {
-        const auto port = static_cast<uint16_t>(std::stoi(args[i + 1]));
-        filter.set_port(port);
+        const auto port_arg = static_cast<uint16_t>(std::stoi(args[i + 1]));
+        port = port_arg;
       } catch (...) {
         std::cerr << "Invalid port number: " << args[i + 1] << '\n';
         return 1;
@@ -55,7 +58,7 @@ auto main(int argc, char *argv[]) -> int {
     }
 
     else if (arg == "--host" && i + 1 < argc) {
-      filter.set_host(args[i + 1]);
+      host.emplace(args[i + 1]);
       i++; // Skip next argument
     }
 
@@ -77,11 +80,13 @@ auto main(int argc, char *argv[]) -> int {
     }
   }
 
+  const nab::PacketFilter filter{protocol, port, host};
+  nab::CaptureSession session{filter, output_file_name};
+
   // Set up signal handler for Ctrl+C
-  nab::CaptureSession session{};
   g_session = &session;
   std::signal(SIGINT, signal_handler);
 
   // Run capture session
-  return session.run(filter, output_file_name);
+  return session.run();
 }

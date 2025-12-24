@@ -11,20 +11,18 @@
 
 namespace nab {
 
-auto CaptureSession::run(const PacketFilter &filter, const std::string &output_file_name) -> int {
-  filter_ = filter;
-
+auto CaptureSession::run() -> int {
   // Set up pcap file writer if output file is specified
-  if (!output_file_name.empty()) {
+  if (!output_file_name_.empty()) {
     writer_ =
-        std::make_unique<pcpp::PcapFileWriterDevice>(output_file_name, pcpp::LINKTYPE_ETHERNET);
+        std::make_unique<pcpp::PcapFileWriterDevice>(output_file_name_, pcpp::LINKTYPE_ETHERNET);
 
     if (!writer_->open()) {
-      std::cerr << "Failed to open output file: " << output_file_name << '\n';
+      std::cerr << "Failed to open output file: " << output_file_name_ << '\n';
       return 1;
     }
 
-    std::cout << "Writing packets to: " << output_file_name << '\n';
+    std::cout << "Writing packets to: " << output_file_name_ << '\n';
   }
 
   // Display active filters
@@ -77,8 +75,8 @@ auto CaptureSession::run(const PacketFilter &filter, const std::string &output_f
             << "  SSH packets (excluded from display): " << ssh << '\n'
             << "  Displayed: " << displayed << '\n';
 
-  if (!output_file_name.empty()) {
-    std::cout << "Packets written to: " << output_file_name << '\n';
+  if (!output_file_name_.empty()) {
+    std::cout << "Packets written to: " << output_file_name_ << '\n';
   }
 
   return 0;
@@ -156,6 +154,7 @@ void CaptureSession::handle_packet(pcpp::RawPacket *raw_packet) {
 
 void CaptureSession::print_packet(const pcpp::RawPacket *raw_packet, const ParsedPacket &parsed,
                                   int count) {
+
   const int len{raw_packet->getRawDataLen()};
 
   // Print based on protocol

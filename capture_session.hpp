@@ -14,11 +14,12 @@ namespace nab {
 // Manages a packet capture session
 class CaptureSession {
 public:
-  CaptureSession() = default;
+  // Configure capture session with optional filter and output file
+  CaptureSession(PacketFilter filter, std::string output_file_name)
+      : filter_(std::move(filter)), output_file_name_(std::move(output_file_name)){};
 
-  // Run capture session with optional filter and output file
-  // Returns 0 on success, 1 on error
-  auto run(const PacketFilter &filter, const std::string &output_file) -> int;
+  // Runs capture session, returning 0 on success, 1 on error
+  auto run() -> int;
 
   // Stop the capture (called by signal handler)
   void stop();
@@ -32,7 +33,8 @@ private:
   void handle_packet(pcpp::RawPacket *raw_packet);
 
   // Print packet information to stdout
-  void print_packet(const pcpp::RawPacket *raw_packet, const ParsedPacket &parsed, int count);
+  static void print_packet(const pcpp::RawPacket *raw_packet, const ParsedPacket &parsed,
+                           int count);
 
   // State
   std::atomic<bool> stop_capture_{false};
@@ -42,6 +44,7 @@ private:
 
   // Configuration
   PacketFilter filter_;
+  std::string output_file_name_;
   std::unique_ptr<pcpp::PcapFileWriterDevice> writer_;
 };
 

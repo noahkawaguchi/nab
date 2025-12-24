@@ -18,11 +18,9 @@ struct ParsedPacket {
 // Filter criteria for packet capture
 class PacketFilter {
 public:
-  PacketFilter() = default;
-
-  void set_protocol(const std::string &protocol) { protocol_ = protocol; }
-  void set_port(uint16_t port) { port_ = port; }
-  void set_host(const std::string &host) { host_ = host; }
+  PacketFilter(std::optional<std::string> protocol, std::optional<uint16_t> port,
+               std::optional<std::string> host)
+      : protocol_(std::move(protocol)), port_(port), host_(std::move(host)){};
 
   [[nodiscard]] auto has_any_filter() const -> bool {
     return protocol_.has_value() || port_.has_value() || host_.has_value();
