@@ -1,8 +1,11 @@
 Checks: >
   bugprone-*,
+  cert-*,
   clang-analyzer-*,
   concurrency-*,
   cppcoreguidelines-*,
+  hicpp-*,
+  -hicpp-signed-bitwise,
   misc-*,
   -misc-no-recursion,
   modernize-*,
@@ -10,5 +13,4 @@ Checks: >
   portability-*,
   -portability-avoid-pragma-once,
   readability-*,
-  -readability-identifier-length
-
+  -readability-identifier-length,
