@@ -19,7 +19,7 @@ auto main(int argc, char *argv[]) -> int {
   const std::span args{argv, static_cast<std::size_t>(argc)};
   std::string output_file_name{};
   std::optional<std::string> protocol{};
-  std::optional<uint16_t> port{};
+  std::optional<std::uint16_t> port{};
   std::optional<std::string> host{};
 
   // Parse command-line arguments
@@ -47,7 +47,7 @@ auto main(int argc, char *argv[]) -> int {
 
     else if (arg == "--port" && i + 1 < argc) {
       try {
-        const auto port_arg = static_cast<uint16_t>(std::stoi(args[i + 1]));
+        const auto port_arg = static_cast<std::uint16_t>(std::stoi(args[i + 1]));
         port = port_arg;
       } catch (...) {
         std::cerr << "Invalid port number: " << args[i + 1] << '\n';

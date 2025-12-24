@@ -93,9 +93,9 @@ void CaptureSession::packet_callback(pcpp::RawPacket *raw_packet, pcpp::PcapLive
 
 void CaptureSession::handle_packet(pcpp::RawPacket *raw_packet) {
   // Create a span view of the raw packet data
-  const uint8_t *data{raw_packet->getRawData()};
+  const std::uint8_t *data{raw_packet->getRawData()};
   const auto len = static_cast<std::size_t>(raw_packet->getRawDataLen());
-  const std::span<const uint8_t> packet{data, len};
+  const std::span<const std::uint8_t> packet{data, len};
 
   const int count{++packet_count_};
 

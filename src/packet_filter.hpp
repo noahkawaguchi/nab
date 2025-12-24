@@ -9,8 +9,8 @@ namespace nab {
 // Parsed packet information needed for filtering
 struct ParsedPacket {
   std::string protocol; // "tcp", "udp", "icmp", "arp", "ipv6", etc.
-  std::optional<uint16_t> src_port;
-  std::optional<uint16_t> dst_port;
+  std::optional<std::uint16_t> src_port;
+  std::optional<std::uint16_t> dst_port;
   std::optional<std::string> src_ip;
   std::optional<std::string> dst_ip;
 };
@@ -18,7 +18,7 @@ struct ParsedPacket {
 // Filter criteria for packet capture
 class PacketFilter {
 public:
-  PacketFilter(std::optional<std::string> protocol, std::optional<uint16_t> port,
+  PacketFilter(std::optional<std::string> protocol, std::optional<std::uint16_t> port,
                std::optional<std::string> host)
       : protocol_(std::move(protocol)), port_(port), host_(std::move(host)){};
 
@@ -35,7 +35,7 @@ public:
 
 private:
   std::optional<std::string> protocol_;
-  std::optional<uint16_t> port_;
+  std::optional<std::uint16_t> port_;
   std::optional<std::string> host_;
 };
 

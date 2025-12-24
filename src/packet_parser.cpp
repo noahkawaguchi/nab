@@ -3,30 +3,35 @@
 #include <cstddef>
 #include <format>
 
+namespace {
+constexpr std::size_t ETHERNET_BYTES{14};
+constexpr std::size_t IPV4_BYTES{20};
+} // namespace
+
 namespace nab {
 
-auto format_ip_address(std::span<const uint8_t, 4> ip) -> std::string {
+auto format_ip_address(std::span<const std::uint8_t, 4> ip) -> std::string {
   return std::format("{}.{}.{}.{}", ip[0], ip[1], ip[2], ip[3]);
 }
 
-auto parse_ethernet_header(std::span<const uint8_t> packet) -> std::optional<uint16_t> {
-  if (packet.size() < 14) { return std::nullopt; }
+auto parse_ethernet_header(std::span<const std::uint8_t> packet) -> std::optional<std::uint16_t> {
+  if (packet.size() < ETHERNET_BYTES) { return std::nullopt; }
   // EtherType is big-endian (2 bytes at offset 12-13)
-  return static_cast<uint16_t>((packet[12] << 8) | packet[13]);
+  return static_cast<std::uint16_t>((packet[12] << 8) | packet[13]);
 }
 
-auto parse_ipv4_packet(std::span<const uint8_t> packet, ParsedPacket &parsed) -> bool {
+auto parse_ipv4_packet(std::span<const std::uint8_t> packet, ParsedPacket &parsed) -> bool {
   // Need at least Ethernet (14) + IPv4 header (20)
-  if (packet.size() < 34) { return false; }
+  if (packet.size() < ETHERNET_BYTES + IPV4_BYTES) { return false; }
 
   // IP header starts after Ethernet header (14 bytes)
-  const auto ip_header = packet.subspan(14);
+  const auto ip_header = packet.subspan(ETHERNET_BYTES);
 
   // Byte 0: header length (bottom 4 bits) in 32-bit words
-  const auto ihl = static_cast<uint8_t>(ip_header[0] & 0x0F);
+  const auto ihl = static_cast<std::uint8_t>(ip_header[0] & 0x0F);
 
   // Byte 9: protocol (6=TCP, 17=UDP, 1=ICMP, etc.)
-  const uint8_t protocol{ip_header[9]};
+  const std::uint8_t protocol{ip_header[9]};
 
   // Bytes 12-15: source IP address (4 bytes)
   const auto src_ip = ip_header.subspan<12, 4>();
@@ -54,8 +59,8 @@ auto parse_ipv4_packet(std::span<const uint8_t> packet, ParsedPacket &parsed) ->
     // Both TCP and UDP have ports at the same location
     // Bytes 0-1: source port (big-endian)
     // Bytes 2-3: destination port (big-endian)
-    parsed.src_port = static_cast<uint16_t>((transport_header[0] << 8) | transport_header[1]);
-    parsed.dst_port = static_cast<uint16_t>((transport_header[2] << 8) | transport_header[3]);
+    parsed.src_port = static_cast<std::uint16_t>((transport_header[0] << 8) | transport_header[1]);
+    parsed.dst_port = static_cast<std::uint16_t>((transport_header[2] << 8) | transport_header[3]);
   } else if (protocol == 1) {
     parsed.protocol = "icmp";
   } else if (protocol == 2) {
@@ -72,7 +77,7 @@ auto is_ssh_packet(const ParsedPacket &packet) -> bool {
   return packet.src_port.value() == 22 || packet.dst_port.value() == 22;
 }
 
-auto get_service_name(const uint16_t port) -> std::string {
+auto get_service_name(const std::uint16_t port) -> std::string {
   switch (port) {
   case 80: return "/HTTP";
   case 443: return "/HTTPS";
