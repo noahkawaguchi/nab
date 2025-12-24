@@ -167,9 +167,9 @@ void CaptureSession::print_packet(const pcpp::RawPacket *raw_packet, const Parse
     const std::string dst_service = get_service_name(parsed.dst_port.value());
 
     // Show service name (prefer destination port for typical client->server traffic)
-    if (dst_service[0] != '\0') {
+    if (!dst_service.empty()) {
       std::cout << dst_service;
-    } else if (src_service[0] != '\0') {
+    } else if (!src_service.empty()) {
       std::cout << src_service;
     }
 
