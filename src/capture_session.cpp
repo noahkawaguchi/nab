@@ -92,12 +92,15 @@ void CaptureSession::packet_callback(pcpp::RawPacket *raw_packet, pcpp::PcapLive
 }
 
 void CaptureSession::handle_packet(pcpp::RawPacket *raw_packet) {
+  // Create a span view of the raw packet data
   const uint8_t *data{raw_packet->getRawData()};
-  const int len{raw_packet->getRawDataLen()};
+  const auto len = static_cast<std::size_t>(raw_packet->getRawDataLen());
+  const std::span<const uint8_t> packet{data, len};
+
   const int count{++packet_count_};
 
   // Parse Ethernet header
-  auto ethertype = parse_ethernet_header(data, len);
+  const auto ethertype = parse_ethernet_header(packet);
   if (!ethertype.has_value()) {
     std::cout << std::format("#{}: Invalid ({}B)\n", count, len);
     return;
@@ -106,7 +109,7 @@ void CaptureSession::handle_packet(pcpp::RawPacket *raw_packet) {
   // Handle IPv4 packets
   if (ethertype.value() == 0x0800) {
     ParsedPacket parsed;
-    if (!parse_ipv4_packet(data, len, parsed)) {
+    if (!parse_ipv4_packet(packet, parsed)) {
       std::cout << std::format("#{}: IPv4 (truncated, {}B)\n", count, len);
       return;
     }
