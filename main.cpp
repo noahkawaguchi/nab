@@ -3,6 +3,7 @@
 #include <format>
 #include <iostream>
 #include <memory>
+#include <optional>
 #include <pcapplusplus/PcapFileDevice.h>
 #include <pcapplusplus/PcapLiveDeviceList.h>
 #include <pcapplusplus/RawPacket.h>
@@ -12,6 +13,20 @@
 std::atomic<bool> stop_capture{false};
 std::atomic<int> packet_count{0};
 std::atomic<int> ssh_packet_count{0};
+std::atomic<int> filtered_packet_count{0};
+
+// Filter criteria for packet capture
+struct PacketFilter {
+  std::optional<std::string> protocol; // "tcp", "udp", "icmp"
+  std::optional<uint16_t> port;        // Source or destination port
+  std::optional<std::string> host;     // Source or destination IP
+};
+
+// Context passed to packet callback
+struct CaptureContext {
+  pcpp::PcapFileWriterDevice *writer{};
+  PacketFilter filter;
+};
 
 void signal_handler(int /*signal*/) {
   std::cout << "\nStopping capture...\n";
@@ -24,9 +39,10 @@ void on_packet(pcpp::RawPacket *raw_packet, pcpp::PcapLiveDevice * /*unused*/, v
 
   const int count{++packet_count};
 
-  // Write packet to file if writer is provided
-  auto *writer = static_cast<pcpp::PcapFileWriterDevice *>(cookie);
-  if (writer != nullptr) { writer->writePacket(*raw_packet); }
+  // Extract context (writer and filter)
+  const auto *context = static_cast<CaptureContext *>(cookie);
+  auto *writer = (context != nullptr) ? context->writer : nullptr;
+  const PacketFilter &filter{(context != nullptr) ? context->filter : PacketFilter{}};
 
   // Packet length must be enough for valid Ethernet header
   if (len < 14) {
@@ -84,7 +100,39 @@ void on_packet(pcpp::RawPacket *raw_packet, pcpp::PcapLiveDevice * /*unused*/, v
       const auto src_port = static_cast<uint16_t>((transport_header[0] << 8) | transport_header[1]);
       const auto dst_port = static_cast<uint16_t>((transport_header[2] << 8) | transport_header[3]);
 
-      // Filter SSH silently to prevent feedback loop. Any terminal output over SSH generates
+      // Apply filter criteria
+      if (filter.protocol.has_value()) {
+        const std::string proto_name{(protocol == 6) ? "tcp" : "udp"};
+
+        if (filter.protocol.value() != proto_name) {
+          filtered_packet_count++;
+          return;
+        }
+      }
+
+      if (filter.port.has_value() && src_port != filter.port.value() &&
+          dst_port != filter.port.value()) {
+        filtered_packet_count++;
+        return;
+      }
+
+      if (filter.host.has_value()) {
+        const std::string src_ip_str{
+            std::format("{}.{}.{}.{}", src_ip[0], src_ip[1], src_ip[2], src_ip[3])};
+
+        const std::string dst_ip_str{
+            std::format("{}.{}.{}.{}", dst_ip[0], dst_ip[1], dst_ip[2], dst_ip[3])};
+
+        if (src_ip_str != filter.host.value() && dst_ip_str != filter.host.value()) {
+          filtered_packet_count++;
+          return;
+        }
+      }
+
+      // Write to pcap before SSH filter for complete captures in the file
+      if (writer != nullptr) { writer->writePacket(*raw_packet); }
+
+      // Filter SSH from display to prevent feedback loop. Any terminal output over SSH generates
       // packets, which would be captured and printed, creating exponential growth.
       if (src_port == 22 || dst_port == 22) {
         ssh_packet_count++;
@@ -123,6 +171,40 @@ void on_packet(pcpp::RawPacket *raw_packet, pcpp::PcapLiveDevice * /*unused*/, v
       std::cout << std::format(" {}B\n", len);
     } else {
       // Non-TCP/UDP protocols (ICMP, etc.)
+
+      // Apply protocol filter for non-TCP/UDP
+      if (filter.protocol.has_value()) {
+        const std::string proto_name{(protocol == 1) ? "icmp" : "other"};
+
+        if (filter.protocol.value() != proto_name) {
+          filtered_packet_count++;
+          return;
+        }
+      }
+
+      // Apply host filter
+      if (filter.host.has_value()) {
+        const std::string src_ip_str{
+            std::format("{}.{}.{}.{}", src_ip[0], src_ip[1], src_ip[2], src_ip[3])};
+
+        const std::string dst_ip_str{
+            std::format("{}.{}.{}.{}", dst_ip[0], dst_ip[1], dst_ip[2], dst_ip[3])};
+
+        if (src_ip_str != filter.host.value() && dst_ip_str != filter.host.value()) {
+          filtered_packet_count++;
+          return;
+        }
+      }
+
+      // Port filter doesn't apply to non-TCP/UDP
+      if (filter.port.has_value()) {
+        filtered_packet_count++;
+        return;
+      }
+
+      // Write packet to file if writer is provided
+      if (writer != nullptr) { writer->writePacket(*raw_packet); }
+
       std::cout << std::format("#{}: {}.{}.{}.{} -> {}.{}.{}.{} ", count, src_ip[0], src_ip[1],
                                src_ip[2], src_ip[3], dst_ip[0], dst_ip[1], dst_ip[2], dst_ip[3]);
 
@@ -136,6 +218,16 @@ void on_packet(pcpp::RawPacket *raw_packet, pcpp::PcapLiveDevice * /*unused*/, v
     }
   } else {
     // Non-IPv4 packets (ARP, IPv6, etc.)
+
+    // If any filter is set, exclude non-IPv4 packets
+    if (filter.protocol.has_value() || filter.port.has_value() || filter.host.has_value()) {
+      filtered_packet_count++;
+      return;
+    }
+
+    // Write packet to file if writer is provided
+    if (writer != nullptr) { writer->writePacket(*raw_packet); }
+
     std::cout << std::format("#{}: ", count);
 
     switch (ethertype) {
@@ -148,10 +240,7 @@ void on_packet(pcpp::RawPacket *raw_packet, pcpp::PcapLiveDevice * /*unused*/, v
   }
 }
 
-auto capture_packet(const std::string &output_file_name) -> int {
-  // Set up signal handler for Ctrl+C
-  std::signal(SIGINT, signal_handler);
-
+auto capture_packet(const std::string &output_file_name, const PacketFilter &filter) -> int {
   std::unique_ptr<pcpp::PcapFileWriterDevice> writer{nullptr};
 
   // Set up pcap file writer if output file is specified
@@ -165,6 +254,18 @@ auto capture_packet(const std::string &output_file_name) -> int {
     }
 
     std::cout << "Writing packets to: " << output_file_name << '\n';
+  }
+
+  // Create capture context with writer and filter
+  CaptureContext context{writer.get(), filter};
+
+  // Display active filters
+  if (filter.protocol.has_value() || filter.port.has_value() || filter.host.has_value()) {
+    std::cout << "Active filters:";
+    if (filter.protocol.has_value()) { std::cout << " protocol=" << filter.protocol.value(); }
+    if (filter.port.has_value()) { std::cout << " port=" << filter.port.value(); }
+    if (filter.host.has_value()) { std::cout << " host=" << filter.host.value(); }
+    std::cout << '\n';
   }
 
   // Get the first non-loopback device
@@ -190,7 +291,7 @@ auto capture_packet(const std::string &output_file_name) -> int {
   }
 
   std::cout << "Capturing packets... (Press Ctrl+C to stop)\n";
-  device->startCapture(on_packet, writer.get());
+  device->startCapture(on_packet, &context);
 
   // Keep capturing until Ctrl+C
   while (!stop_capture) { std::this_thread::sleep_for(std::chrono::milliseconds(100)); }
@@ -201,13 +302,15 @@ auto capture_packet(const std::string &output_file_name) -> int {
   // Close pcap writer if it was opened
   if (writer != nullptr) { writer->close(); }
 
-  const int total = packet_count.load();
-  const int ssh = ssh_packet_count.load();
-  const int non_ssh = total - ssh;
+  const int total{packet_count.load()};
+  const int ssh{ssh_packet_count.load()};
+  const int filtered{filtered_packet_count.load()};
+  const int displayed{total - ssh - filtered};
 
   std::cout << "\nTotal packets captured: " << total << '\n'
-            << "  SSH packets (filtered): " << ssh << '\n'
-            << "  Non-SSH packets (displayed): " << non_ssh << '\n';
+            << "  Filtered out: " << filtered << '\n'
+            << "  SSH packets (excluded from display): " << ssh << '\n'
+            << "  Displayed: " << displayed << '\n';
 
   if (!output_file_name.empty()) {
     std::cout << "Packets written to: " << output_file_name << '\n';
@@ -217,25 +320,67 @@ auto capture_packet(const std::string &output_file_name) -> int {
 }
 
 auto main(int argc, char *argv[]) -> int {
-  std::string output_file_name{};
+  // Set up signal handler for Ctrl+C
+  std::signal(SIGINT, signal_handler);
 
-  // Simple argument parsing for -o flag
+  std::string output_file_name{};
+  PacketFilter filter{};
+
+  // Simple argument parsing
   for (int i = 1; i < argc; i++) {
     std::string arg{argv[i]};
 
     if (arg == "-o" && i + 1 < argc) {
       output_file_name = argv[i + 1];
       i++; // Skip next argument
-    } else if (arg == "--help" || arg == "-h") {
-      std::cout << "Usage: " << argv[0] << " [-o output.pcap]\n"
-                << "  -o <file>  Write captured packets to pcap file\n";
+    }
+
+    else if (arg == "--protocol" && i + 1 < argc) {
+      filter.protocol = argv[i + 1];
+
+      // Validate protocol
+      if (filter.protocol != "tcp" && filter.protocol != "udp" && filter.protocol != "icmp") {
+        std::cerr << "Invalid protocol: " << filter.protocol.value() << '\n'
+                  << "Valid protocols: tcp, udp, icmp\n";
+        return 1;
+      }
+
+      i++; // Skip next argument
+    }
+
+    else if (arg == "--port" && i + 1 < argc) {
+      try {
+        filter.port = static_cast<uint16_t>(std::stoi(argv[i + 1]));
+      } catch (...) {
+        std::cerr << "Invalid port number: " << argv[i + 1] << '\n';
+        return 1;
+      }
+
+      i++; // Skip next argument
+    }
+
+    else if (arg == "--host" && i + 1 < argc) {
+      filter.host = argv[i + 1];
+      i++; // Skip next argument
+    }
+
+    else if (arg == "--help" || arg == "-h") {
+      std::cout << "Usage: " << argv[0] << " [options]\n"
+                << "Options:\n"
+                << "  -o <file>          Write captured packets to pcap file\n"
+                << "  --protocol <proto> Filter by protocol (tcp, udp, icmp)\n"
+                << "  --port <num>       Filter by port (source or destination)\n"
+                << "  --host <ip>        Filter by IP address (source or destination)\n"
+                << "  -h, --help         Show this help message\n";
       return 0;
-    } else {
+    }
+
+    else {
       std::cerr << "Unknown argument: " << arg << '\n'
                 << "Use -h or --help for usage information\n";
       return 1;
     }
   }
 
-  return capture_packet(output_file_name);
+  return capture_packet(output_file_name, filter);
 }
