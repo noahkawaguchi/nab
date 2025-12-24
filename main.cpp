@@ -1,5 +1,7 @@
 #include <csignal>
+#include <cstddef>
 #include <iostream>
+#include <span>
 #include <string>
 
 #include "capture_session.hpp"
@@ -13,20 +15,21 @@ void signal_handler(int /*signal*/) {
 }
 
 auto main(int argc, char *argv[]) -> int {
+  std::span args{argv, static_cast<std::size_t>(argc)};
   std::string output_file_name{};
   nab::PacketFilter filter{};
 
   // Parse command-line arguments
   for (int i = 1; i < argc; i++) {
-    std::string arg{argv[i]};
+    std::string arg{args[i]};
 
     if (arg == "-o" && i + 1 < argc) {
-      output_file_name = argv[i + 1];
+      output_file_name = args[i + 1];
       i++; // Skip next argument
     }
 
     else if (arg == "--protocol" && i + 1 < argc) {
-      std::string protocol{argv[i + 1]};
+      std::string protocol{args[i + 1]};
 
       // Validate protocol
       if (protocol != "tcp" && protocol != "udp" && protocol != "icmp") {
@@ -41,10 +44,10 @@ auto main(int argc, char *argv[]) -> int {
 
     else if (arg == "--port" && i + 1 < argc) {
       try {
-        const auto port = static_cast<uint16_t>(std::stoi(argv[i + 1]));
+        const auto port = static_cast<uint16_t>(std::stoi(args[i + 1]));
         filter.set_port(port);
       } catch (...) {
-        std::cerr << "Invalid port number: " << argv[i + 1] << '\n';
+        std::cerr << "Invalid port number: " << args[i + 1] << '\n';
         return 1;
       }
 
@@ -52,12 +55,12 @@ auto main(int argc, char *argv[]) -> int {
     }
 
     else if (arg == "--host" && i + 1 < argc) {
-      filter.set_host(argv[i + 1]);
+      filter.set_host(args[i + 1]);
       i++; // Skip next argument
     }
 
     else if (arg == "--help" || arg == "-h") {
-      std::cout << "Usage: " << argv[0] << " [options]\n"
+      std::cout << "Usage: " << args[0] << " [options]\n"
                 << "Options:\n"
                 << "  -o <file>          Write captured packets to pcap file\n"
                 << "  --protocol <proto> Filter by protocol (tcp, udp, icmp)\n"
