@@ -85,7 +85,10 @@ auto main(int argc, char *argv[]) -> int {
 
   // Set up signal handler for Ctrl+C
   g_session = &session;
-  std::signal(SIGINT, signal_handler);
+  if (std::signal(SIGINT, signal_handler) == SIG_ERR) {
+    std::cerr << "Failed to install signal handler\n";
+    return 1;
+  }
 
   // Run capture session
   return session.run();
