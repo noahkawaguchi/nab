@@ -26,11 +26,11 @@ public:
 
 private:
   // Static callback required by pcapplusplus API
-  static void packet_callback(pcpp::RawPacket *raw_packet, pcpp::PcapLiveDevice *device,
+  static void packet_callback(const pcpp::RawPacket *raw_packet, const pcpp::PcapLiveDevice *device,
                               void *cookie);
 
   // Instance method that handles the packet
-  void handle_packet(pcpp::RawPacket *raw_packet);
+  void handle_packet(const pcpp::RawPacket *raw_packet);
 
   // Print packet information to stdout
   static void print_packet(const pcpp::RawPacket *raw_packet, const ParsedPacket &parsed,

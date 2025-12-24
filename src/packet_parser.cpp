@@ -20,17 +20,17 @@ constexpr std::uint16_t SSH_PORT{22};
 
 namespace nab {
 
-auto format_ip_address(std::span<const std::uint8_t, 4> ip) -> std::string {
+auto format_ip_address(const std::span<const std::uint8_t, 4> ip) -> std::string {
   return std::format("{}.{}.{}.{}", ip[0], ip[1], ip[2], ip[3]);
 }
 
-auto parse_ethernet_header(std::span<const std::uint8_t> packet) -> std::optional<EtherType> {
+auto parse_ethernet_header(const std::span<const std::uint8_t> packet) -> std::optional<EtherType> {
   if (packet.size() < ETHERNET_BYTES) { return std::nullopt; }
   // EtherType is big-endian (2 bytes at offset 12-13)
   return static_cast<EtherType>((packet[12] << 8) | packet[13]);
 }
 
-auto parse_ipv4_packet(std::span<const std::uint8_t> packet, ParsedPacket &parsed) -> bool {
+auto parse_ipv4_packet(const std::span<const std::uint8_t> packet, ParsedPacket &parsed) -> bool {
   // Need at least Ethernet + IPv4 header
   if (packet.size() < ETHERNET_BYTES + IPV4_BYTES) { return false; }
 

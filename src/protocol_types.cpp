@@ -4,18 +4,19 @@
 
 namespace nab {
 
-auto protocol_to_string(Protocol protocol) -> std::string {
+auto protocol_to_string(const Protocol protocol) -> std::string {
   switch (protocol) {
   case Protocol::TCP: return "TCP";
   case Protocol::UDP: return "UDP";
   case Protocol::ICMP: return "ICMP";
   case Protocol::IGMP: return "IGMP";
   case Protocol::Unknown: return "Unknown";
+  // Should be impossible to reach here
+  default: return "Unexpected";
   }
-  return "Unknown";
 }
 
-auto parse_protocol(std::uint8_t protocol_num) -> Protocol {
+auto parse_protocol(const std::uint8_t protocol_num) -> Protocol {
   switch (protocol_num) {
   case 1: return Protocol::ICMP;
   case 2: return Protocol::IGMP;
@@ -27,7 +28,7 @@ auto parse_protocol(std::uint8_t protocol_num) -> Protocol {
   }
 }
 
-auto parse_protocol(std::string_view protocol_str) -> Protocol {
+auto parse_protocol(const std::string_view protocol_str) -> Protocol {
   if (protocol_str == "tcp") { return Protocol::TCP; }
   if (protocol_str == "udp") { return Protocol::UDP; }
   if (protocol_str == "icmp") { return Protocol::ICMP; }
@@ -35,7 +36,7 @@ auto parse_protocol(std::string_view protocol_str) -> Protocol {
   return Protocol::Unknown;
 }
 
-auto ethertype_to_string(EtherType ethertype) -> std::string {
+auto ethertype_to_string(const EtherType ethertype) -> std::string {
   switch (ethertype) {
   case EtherType::IPv4: return "IPv4";
   case EtherType::ARP: return "ARP";

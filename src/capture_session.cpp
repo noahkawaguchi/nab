@@ -85,14 +85,14 @@ auto CaptureSession::run() -> int {
 
 void CaptureSession::stop() { stop_capture_ = true; }
 
-void CaptureSession::packet_callback(pcpp::RawPacket *raw_packet, pcpp::PcapLiveDevice * /*device*/,
-                                     void *cookie) {
+void CaptureSession::packet_callback(const pcpp::RawPacket *raw_packet,
+                                     const pcpp::PcapLiveDevice * /*device*/, void *cookie) {
   // Cast cookie back to CaptureSession instance
   auto *session = static_cast<CaptureSession *>(cookie);
   session->handle_packet(raw_packet);
 }
 
-void CaptureSession::handle_packet(pcpp::RawPacket *raw_packet) {
+void CaptureSession::handle_packet(const pcpp::RawPacket *raw_packet) {
   // Create a span view of the raw packet data
   const std::uint8_t *data{raw_packet->getRawData()};
   const auto len = static_cast<std::size_t>(raw_packet->getRawDataLen());
@@ -149,7 +149,7 @@ void CaptureSession::handle_packet(pcpp::RawPacket *raw_packet) {
 }
 
 void CaptureSession::print_packet(const pcpp::RawPacket *raw_packet, const ParsedPacket &parsed,
-                                  int count) {
+                                  const int count) {
 
   const int len{raw_packet->getRawDataLen()};
 
