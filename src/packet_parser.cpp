@@ -68,7 +68,7 @@ auto is_ssh_packet(const ParsedPacket &packet) -> bool {
   return packet.src_port.value() == 22 || packet.dst_port.value() == 22;
 }
 
-auto get_service_name(uint16_t port) -> const char * {
+auto get_service_name(uint16_t port) -> std::string {
   switch (port) {
   case 80: return "/HTTP";
   case 443: return "/HTTPS";

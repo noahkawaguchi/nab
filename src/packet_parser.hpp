@@ -24,6 +24,6 @@ auto parse_ipv4_packet(const uint8_t *data, int len, ParsedPacket &packet) -> bo
 auto is_ssh_packet(const ParsedPacket &packet) -> bool;
 
 // Get service name for well-known ports
-auto get_service_name(uint16_t port) -> const char *;
+auto get_service_name(uint16_t port) -> std::string;
 
 } // namespace nab

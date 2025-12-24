@@ -167,8 +167,8 @@ void CaptureSession::print_packet(const pcpp::RawPacket *raw_packet, const Parse
     std::cout << (parsed.protocol == "tcp" ? "TCP" : "UDP");
 
     // Add service name if it's a well-known port
-    const char *src_service = get_service_name(parsed.src_port.value());
-    const char *dst_service = get_service_name(parsed.dst_port.value());
+    const std::string src_service = get_service_name(parsed.src_port.value());
+    const std::string dst_service = get_service_name(parsed.dst_port.value());
 
     // Show service name (prefer destination port for typical client->server traffic)
     if (dst_service[0] != '\0') {
