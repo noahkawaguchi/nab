@@ -3,6 +3,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <format>
+#include <utility>
 
 #include "protocol_types.hpp"
 
@@ -13,10 +14,12 @@ constexpr std::size_t IPV4_MIN_BYTES{20};
 constexpr std::size_t TCP_MIN_BYTES{20};
 constexpr std::size_t UDP_BYTES{8};
 
-constexpr std::uint16_t HTTP_PORT{80};
-constexpr std::uint16_t HTTPS_PORT{443};
-constexpr std::uint16_t DNS_PORT{53};
-constexpr std::uint16_t SSH_PORT{22};
+enum class PortNumber : std::uint16_t {
+  SSH = 22,
+  DNS = 53,
+  HTTP = 80,
+  HTTPS = 443,
+};
 
 } // namespace
 
@@ -77,16 +80,19 @@ auto parse_ipv4_packet(const std::span<const std::uint8_t> packet) -> std::optio
 }
 
 auto is_ssh_packet(const ParsedPacket &packet) -> bool {
-  if (!packet.src_port.has_value() || !packet.dst_port.has_value()) { return false; }
-  return packet.src_port.value() == SSH_PORT || packet.dst_port.value() == SSH_PORT;
+  constexpr auto ssh = std::to_underlying(PortNumber::SSH);
+
+  // Both ports should be present to be classified as SSH traffic
+  return (packet.src_port && packet.dst_port) &&
+         (*packet.src_port == ssh || *packet.dst_port == ssh);
 }
 
 auto get_service_name(const std::uint16_t port) -> std::string {
-  switch (port) {
-  case HTTP_PORT: return "/HTTP";
-  case HTTPS_PORT: return "/HTTPS";
-  case DNS_PORT: return "/DNS";
-  case SSH_PORT: return "/SSH";
+  switch (static_cast<PortNumber>(port)) {
+  case PortNumber::HTTP: return "/HTTP";
+  case PortNumber::HTTPS: return "/HTTPS";
+  case PortNumber::DNS: return "/DNS";
+  case PortNumber::SSH: return "/SSH";
   default: return "";
   }
 }
