@@ -1,9 +1,7 @@
 #include "capture_session.hpp"
 
-#include <chrono>
 #include <format>
 #include <iostream>
-#include <thread>
 
 #include <pcapplusplus/PcapLiveDeviceList.h>
 
@@ -56,8 +54,11 @@ auto CaptureSession::run() -> int {
   // Pass "this" pointer to static callback via cookie
   device->startCapture(packet_callback, this);
 
-  // Keep capturing until stop() is called
-  while (!stop_capture_) { std::this_thread::sleep_for(std::chrono::milliseconds(100)); }
+  // Put the thread to sleep and wait for stop signal
+  {
+    std::unique_lock lock{stop_mutex_};
+    stop_cv_.wait(lock, [this] { return stop_capture_.load(); });
+  }
 
   device->stopCapture();
   device->close();
@@ -83,7 +84,10 @@ auto CaptureSession::run() -> int {
   return 0;
 }
 
-void CaptureSession::stop() { stop_capture_ = true; }
+void CaptureSession::stop() {
+  stop_capture_ = true;
+  stop_cv_.notify_one();
+}
 
 void CaptureSession::packet_callback(const pcpp::RawPacket *raw_packet,
                                      const pcpp::PcapLiveDevice * /*device*/, void *cookie) {

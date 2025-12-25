@@ -1,7 +1,9 @@
 #pragma once
 
 #include <atomic>
+#include <condition_variable>
 #include <memory>
+#include <mutex>
 #include <string>
 
 #include <pcapplusplus/PcapFileDevice.h>
@@ -41,6 +43,10 @@ private:
   std::atomic<int> packet_count_{0};
   std::atomic<int> ssh_packet_count_{0};
   std::atomic<int> filtered_packet_count_{0};
+
+  // Synchronization for shutdown
+  std::mutex stop_mutex_;
+  std::condition_variable stop_cv_;
 
   // Configuration
   PacketFilter filter_;
