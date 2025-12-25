@@ -9,7 +9,9 @@
 namespace {
 
 constexpr std::size_t ETHERNET_BYTES{14};
-constexpr std::size_t IPV4_BYTES{20};
+constexpr std::size_t IPV4_MIN_BYTES{20};
+constexpr std::size_t TCP_MIN_BYTES{20};
+constexpr std::size_t UDP_BYTES{8};
 
 constexpr std::uint16_t HTTP_PORT{80};
 constexpr std::uint16_t HTTPS_PORT{443};
@@ -20,7 +22,7 @@ constexpr std::uint16_t SSH_PORT{22};
 
 namespace nab {
 
-auto format_ip_address(const std::span<const std::uint8_t, 4> ip) -> std::string {
+auto format_ip_addr(const std::span<const std::uint8_t, 4> ip) -> std::string {
   return std::format("{}.{}.{}.{}", ip[0], ip[1], ip[2], ip[3]);
 }
 
@@ -30,9 +32,9 @@ auto parse_ethernet_header(const std::span<const std::uint8_t> packet) -> std::o
   return static_cast<EtherType>((packet[12] << 8) | packet[13]);
 }
 
-auto parse_ipv4_packet(const std::span<const std::uint8_t> packet, ParsedPacket &parsed) -> bool {
+auto parse_ipv4_packet(const std::span<const std::uint8_t> packet) -> std::optional<ParsedPacket> {
   // Need at least Ethernet + IPv4 header
-  if (packet.size() < ETHERNET_BYTES + IPV4_BYTES) { return false; }
+  if (packet.size() < ETHERNET_BYTES + IPV4_MIN_BYTES) { return std::nullopt; }
 
   // IP header starts after Ethernet header
   const auto ip_header = packet.subspan(ETHERNET_BYTES);
@@ -40,27 +42,26 @@ auto parse_ipv4_packet(const std::span<const std::uint8_t> packet, ParsedPacket 
   // Byte 0: header length (bottom 4 bits) in 32-bit words
   const auto ihl = static_cast<std::uint8_t>(ip_header[0] & 0x0F);
 
+  ParsedPacket parsed;
+
   // Byte 9: protocol (6=TCP, 17=UDP, 1=ICMP, etc.)
-  const std::uint8_t protocol{ip_header[9]};
+  parsed.protocol = parse_protocol(ip_header[9]);
 
   // Bytes 12-15: source IP address (4 bytes)
-  const auto src_ip = ip_header.subspan<12, 4>();
+  parsed.src_ip = format_ip_addr(ip_header.subspan<12, 4>());
 
   // Bytes 16-19: destination IP address (4 bytes)
-  const auto dst_ip = ip_header.subspan<16, 4>();
-
-  parsed.src_ip = format_ip_address(src_ip);
-  parsed.dst_ip = format_ip_address(dst_ip);
-  parsed.protocol = parse_protocol(protocol);
+  parsed.dst_ip = format_ip_addr(ip_header.subspan<16, 4>());
 
   // Parse TCP/UDP for ports
   if (parsed.protocol == Protocol::TCP || parsed.protocol == Protocol::UDP) {
-    const auto ip_header_len = static_cast<const std::size_t>(ihl * 4);
-    const std::size_t transport_offset{14 + ip_header_len};
-    const auto min_transport_len = static_cast<std::size_t>((protocol == 6) ? 20 : 8);
+    const auto ip_header_len = static_cast<std::size_t>(ihl * 4);
+    const std::size_t transport_offset{ETHERNET_BYTES + ip_header_len};
+    const auto min_transport_len =
+        static_cast<std::size_t>((parsed.protocol == Protocol::TCP) ? TCP_MIN_BYTES : UDP_BYTES);
 
     // Truncated packet
-    if (packet.size() < transport_offset + min_transport_len) { return false; }
+    if (packet.size() < transport_offset + min_transport_len) { return std::nullopt; }
 
     // Transport header starts after IP header
     const auto transport_header = packet.subspan(transport_offset);
@@ -72,7 +73,7 @@ auto parse_ipv4_packet(const std::span<const std::uint8_t> packet, ParsedPacket 
     parsed.dst_port = static_cast<std::uint16_t>((transport_header[2] << 8) | transport_header[3]);
   }
 
-  return true;
+  return parsed;
 }
 
 auto is_ssh_packet(const ParsedPacket &packet) -> bool {

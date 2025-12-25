@@ -113,11 +113,12 @@ void CaptureSession::handle_packet(const pcpp::RawPacket *raw_packet) {
 
   // Handle IPv4 packets
   if (ethertype.value() == EtherType::IPv4) {
-    ParsedPacket parsed;
-    if (!parse_ipv4_packet(packet, parsed)) {
+    const auto maybe_parsed = parse_ipv4_packet(packet);
+    if (!maybe_parsed) {
       std::cout << std::format("#{}: IPv4 (truncated, {}B)\n", count, len);
       return;
     }
+    const auto &parsed = *maybe_parsed;
 
     // Apply user filters
     if (filter_.has_any_filter() && !filter_.matches(parsed)) {
@@ -125,7 +126,7 @@ void CaptureSession::handle_packet(const pcpp::RawPacket *raw_packet) {
       return;
     }
 
-    // Write to pcap before SSH filter (we want complete captures in the file)
+    // Write to pcap before SSH filter (to get complete captures in the file)
     if (writer_) { writer_->writePacket(*raw_packet); }
 
     // Filter SSH from display to prevent feedback loop
