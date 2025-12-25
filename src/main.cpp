@@ -9,8 +9,11 @@
 #include "packet_filter.hpp"
 #include "protocol_types.hpp"
 
+// NOLINTBEGIN(cppcoreguidelines-avoid-non-const-global-variables)
+
 // Global session pointer for signal handler
 nab::CaptureSession *g_session{nullptr};
+// NOLINTEND(cppcoreguidelines-avoid-non-const-global-variables)
 
 void signal_handler(int /*signal*/) {
   if (g_session != nullptr) { g_session->stop(); }
