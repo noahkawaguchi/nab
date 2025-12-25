@@ -43,7 +43,7 @@ auto parse_ipv4_packet(const std::span<const std::uint8_t> packet) -> std::optio
   const auto ip_header = packet.subspan(ETHERNET_BYTES);
 
   // Byte 0: header length (bottom 4 bits) in 32-bit words
-  const auto ihl = static_cast<std::uint8_t>(ip_header[0] & 0x0F);
+  const auto internet_header_len = static_cast<std::uint8_t>(ip_header[0] & 0x0F);
 
   ParsedPacket parsed;
 
@@ -56,24 +56,31 @@ auto parse_ipv4_packet(const std::span<const std::uint8_t> packet) -> std::optio
   // Bytes 16-19: destination IP address (4 bytes)
   parsed.dst_ip = format_ip_addr(ip_header.subspan<16, 4>());
 
-  // Parse TCP/UDP for ports
+  // Parse TCP/UDP for ports (if enough data is present)
   if (parsed.protocol == Protocol::TCP || parsed.protocol == Protocol::UDP) {
-    const auto ip_header_len = static_cast<std::size_t>(ihl * 4);
+    // Calculate IP header length (20-60 bytes). IHL is 5-15 32-bit words, so convert to bytes.
+    const auto ip_header_len = static_cast<std::size_t>(internet_header_len * 4);
+
+    // Skip over Ethernet header and IP header to get to transport header
     const std::size_t transport_offset{ETHERNET_BYTES + ip_header_len};
+
+    // Minimum transport header size depends on TCP vs. UDP
     const auto min_transport_len =
         static_cast<std::size_t>((parsed.protocol == Protocol::TCP) ? TCP_MIN_BYTES : UDP_BYTES);
 
-    // Truncated packet
-    if (packet.size() < transport_offset + min_transport_len) { return std::nullopt; }
+    // Only parse transport header if there is enough data (leave ports as nullopt if truncated)
+    if (packet.size() >= transport_offset + min_transport_len) {
+      // Transport header starts after IP header
+      const auto transport_header = packet.subspan(transport_offset);
 
-    // Transport header starts after IP header
-    const auto transport_header = packet.subspan(transport_offset);
-
-    // Both TCP and UDP have ports at the same location
-    // Bytes 0-1: source port (big-endian)
-    // Bytes 2-3: destination port (big-endian)
-    parsed.src_port = static_cast<std::uint16_t>((transport_header[0] << 8) | transport_header[1]);
-    parsed.dst_port = static_cast<std::uint16_t>((transport_header[2] << 8) | transport_header[3]);
+      // Both TCP and UDP have ports at the same location
+      // Bytes 0-1: source port (big-endian)
+      // Bytes 2-3: destination port (big-endian)
+      parsed.src_port =
+          static_cast<std::uint16_t>((transport_header[0] << 8) | transport_header[1]);
+      parsed.dst_port =
+          static_cast<std::uint16_t>((transport_header[2] << 8) | transport_header[3]);
+    }
   }
 
   return parsed;
