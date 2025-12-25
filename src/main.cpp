@@ -11,7 +11,7 @@
 
 // NOLINTBEGIN(cppcoreguidelines-avoid-non-const-global-variables)
 
-// Global session pointer for signal handler
+/// Global pointer to the capture session for the signal handler.
 nab::CaptureSession *g_session{nullptr};
 // NOLINTEND(cppcoreguidelines-avoid-non-const-global-variables)
 

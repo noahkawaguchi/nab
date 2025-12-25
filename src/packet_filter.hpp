@@ -8,7 +8,7 @@
 
 namespace nab {
 
-// Parsed packet information needed for filtering
+/// Parsed packet information needed for filtering.
 struct ParsedPacket {
   Protocol protocol{Protocol::Unknown};
   std::optional<std::uint16_t> src_port;
@@ -17,22 +17,23 @@ struct ParsedPacket {
   std::optional<std::string> dst_ip;
 };
 
-// Filter criteria for packet capture
+/// Filter criteria for packet capture.
 class PacketFilter {
 public:
   PacketFilter(std::optional<Protocol> protocol, std::optional<std::uint16_t> port,
                std::optional<std::string> host)
       : protocol_(protocol), port_(port), host_(std::move(host)){};
 
+  /// Checks whether any of the filters are active.
   [[nodiscard]] auto has_any_filter() const -> bool {
     return protocol_.has_value() || port_.has_value() || host_.has_value();
   }
 
-  // Check if a packet matches the filter criteria
-  // Returns true if packet passes (should be captured/displayed)
+  /// Checks if a packet matches the filter criteria, returning true if packet passes (should be
+  /// captured/displayed).
   [[nodiscard]] auto matches(const ParsedPacket &packet) const -> bool;
 
-  // Get filter description for display
+  /// Generates filter description for display.
   [[nodiscard]] auto description() const -> std::string;
 
 private:
