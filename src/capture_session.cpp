@@ -27,12 +27,12 @@ auto CaptureSession::run() -> int {
   // Display active filters
   if (filter_.has_any_filter()) { std::cout << filter_.description() << '\n'; }
 
-  // Get the first non-loopback device
   pcpp::PcapLiveDevice *device{nullptr};
 
-  for (auto *dev : pcpp::PcapLiveDeviceList::getInstance().getPcapLiveDevicesList()) {
-    if (dev->getName() != "lo") {
-      device = dev;
+  // Get the first non-loopback device
+  for (auto *d : pcpp::PcapLiveDeviceList::getInstance().getPcapLiveDevicesList()) {
+    if (d->getName() != "lo") {
+      device = d;
       break;
     }
   }
@@ -91,6 +91,7 @@ void CaptureSession::stop() {
 
 void CaptureSession::packet_callback(const pcpp::RawPacket *raw_packet,
                                      const pcpp::PcapLiveDevice * /*device*/, void *cookie) {
+
   // Cast cookie back to CaptureSession instance
   auto *session = static_cast<CaptureSession *>(cookie);
   session->handle_packet(raw_packet);
@@ -105,14 +106,15 @@ void CaptureSession::handle_packet(const pcpp::RawPacket *raw_packet) {
   const int count{++packet_count_};
 
   // Parse Ethernet header
-  const auto ethertype = parse_ethernet_header(packet);
-  if (!ethertype.has_value()) {
+  const auto maybe_ethertype = parse_ethernet_header(packet);
+  if (!maybe_ethertype) {
     std::cout << std::format("#{}: Invalid ({}B)\n", count, len);
     return;
   }
+  const auto &ethertype = *maybe_ethertype;
 
   // Handle IPv4 packets
-  if (ethertype.value() == EtherType::IPv4) {
+  if (ethertype == EtherType::IPv4) {
     const auto maybe_parsed = parse_ipv4_packet(packet);
     if (!maybe_parsed) {
       std::cout << std::format("#{}: IPv4 (truncated, {}B)\n", count, len);
@@ -149,7 +151,7 @@ void CaptureSession::handle_packet(const pcpp::RawPacket *raw_packet) {
     // Write packet to file if writer is provided
     if (writer_) { writer_->writePacket(*raw_packet); }
 
-    std::cout << std::format("#{}: {} {}B\n", count, ethertype_to_string(ethertype.value()), len);
+    std::cout << std::format("#{}: {} {}B\n", count, ethertype_to_string(ethertype), len);
   }
 }
 
