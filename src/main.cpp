@@ -1,9 +1,13 @@
+#include <charconv>
 #include <csignal>
 #include <cstddef>
 #include <iostream>
+#include <memory>
 #include <optional>
 #include <span>
 #include <string>
+#include <string_view>
+#include <variant>
 
 #include "capture_session.hpp"
 #include "packet_filter.hpp"
@@ -19,69 +23,71 @@ void signal_handler(int /*signal*/) {
   if (g_session != nullptr) { g_session->stop(); }
 }
 
-auto main(int argc, char *argv[]) -> int {
-  const std::span args{argv, static_cast<std::size_t>(argc)};
+// NOLINTBEGIN(readability-function-cognitive-complexity)
+
+/// Parses command line arguments to configure a `CaptureSession`, or returns a status code to exit
+/// early without executing the session.
+auto parse_args(std::span<char *> args) -> std::variant<std::unique_ptr<nab::CaptureSession>, int> {
   std::string output_file_name{};
   std::optional<nab::Protocol> protocol{};
   std::optional<std::uint16_t> port{};
   std::optional<std::string> host{};
 
-  // Parse command-line arguments
-  for (int i = 1; i < argc; i++) {
-    const std::string arg{args[i]};
+  for (std::size_t i{1}, args_len{args.size()}; i < args_len; i++) {
+    const std::string_view arg{args[i]};
 
     if (arg == "-o") {
-      if (i + 1 >= argc) {
+      if (i + 1 >= args_len) {
         std::cerr << "-o requires a value\n";
         return 1;
       }
-
-      output_file_name = args[i + 1];
-      i++; // Skip next argument
+      output_file_name = args[++i];
     }
 
     else if (arg == "--protocol") {
-      if (i + 1 >= argc) {
+      if (i + 1 >= args_len) {
         std::cerr << "--protocol requires a value\n";
         return 1;
       }
 
-      std::string_view protocol_arg{args[i + 1]};
+      // Attempt to parse the following arg as one of the valid protocols
+      const std::string_view protocol_arg{args[++i]};
       protocol.emplace(nab::parse_protocol(protocol_arg));
 
       if (protocol == nab::Protocol::Unknown) {
         std::cerr << "Invalid protocol: " << protocol_arg << '\n'
                   << "Valid protocols: tcp, udp, icmp, igmp\n";
-        return 1;
+        return 0;
       }
-
-      i++; // Skip next argument
     }
 
     else if (arg == "--port") {
-      if (i + 1 >= argc) {
+      if (i + 1 >= args_len) {
         std::cerr << "--port requires a value\n";
         return 1;
       }
 
-      try {
-        port = static_cast<std::uint16_t>(std::stoi(args[i + 1]));
-      } catch (...) {
-        std::cerr << "Invalid port number: " << args[i + 1] << '\n';
+      // Attempt to parse the following arg as a port number
+      const std::string_view port_arg{args[++i]};
+      std::uint16_t port_num{};
+
+      const auto [_, ec] =
+          std::from_chars(port_arg.data(), port_arg.data() + port_arg.size(), port_num);
+
+      if (ec != std::errc{}) {
+        std::cerr << "Invalid port number: " << port_arg << '\n';
         return 1;
       }
 
-      i++; // Skip next argument
+      port = port_num;
     }
 
     else if (arg == "--host") {
-      if (i + 1 >= argc) {
+      if (i + 1 >= args_len) {
         std::cerr << "--host requires a value\n";
         return 1;
       }
-
-      host.emplace(args[i + 1]);
-      i++; // Skip next argument
+      host.emplace(args[++i]);
     }
 
     else if (arg == "--help" || arg == "-h") {
@@ -102,16 +108,24 @@ auto main(int argc, char *argv[]) -> int {
     }
   }
 
-  const nab::PacketFilter filter{protocol, port, host};
-  nab::CaptureSession session{filter, output_file_name};
+  return std::make_unique<nab::CaptureSession>(nab::PacketFilter{protocol, port, host},
+                                               output_file_name);
+}
+// NOLINTEND(readability-function-cognitive-complexity)
+
+auto main(int argc, char *argv[]) -> int {
+  // Parse command line args into session config or exit
+  const auto arg_result = parse_args(std::span{argv, static_cast<std::size_t>(argc)});
+  if (const int *status_code = std::get_if<int>(&arg_result)) { return *status_code; }
+  const auto &session = std::get<std::unique_ptr<nab::CaptureSession>>(arg_result);
 
   // Set up signal handler for Ctrl+C
-  g_session = &session;
+  g_session = session.get();
   if (std::signal(SIGINT, signal_handler) == SIG_ERR) {
     std::cerr << "Failed to install signal handler\n";
     return 1;
   }
 
-  // Run capture session
-  return session.run();
+  // Run the capture session
+  return session->run();
 }
