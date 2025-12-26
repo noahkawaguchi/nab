@@ -90,8 +90,8 @@ auto is_ssh_packet(const ParsedPacket &packet) -> bool {
   constexpr auto ssh = std::to_underlying(PortNumber::SSH);
 
   // Both ports should be present to be classified as SSH traffic
-  return (packet.src_port && packet.dst_port) &&
-         (*packet.src_port == ssh || *packet.dst_port == ssh);
+  return (packet.src_port && packet.dst_port)
+         && (*packet.src_port == ssh || *packet.dst_port == ssh);
 }
 
 auto get_service_name(const std::uint16_t port) -> std::string {

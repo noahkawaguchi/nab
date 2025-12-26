@@ -3,6 +3,7 @@ AllowShortCaseLabelsOnASingleLine: true
 AllowShortFunctionsOnASingleLine: All
 AllowShortIfStatementsOnASingleLine: AllIfsAndElse
 AllowShortLoopsOnASingleLine: true
+BreakBeforeBinaryOperators: NonAssignment
 ColumnLimit: 100
 IndentWidth: 2
 InsertNewlineAtEOF: true
