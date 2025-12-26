@@ -1,4 +1,11 @@
 {
   "useGitignore": true,
-  "words": ["pcapplusplus", "DCMAKE", "cppcoreguidelines", "bugprone", "hicpp"]
+  "words": [
+    "pcapplusplus",
+    "DCMAKE",
+    "cppcoreguidelines",
+    "bugprone",
+    "hicpp",
+    "ctest"
+  ]
 }

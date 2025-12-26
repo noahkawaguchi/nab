@@ -1,6 +1,9 @@
 [requires]
 pcapplusplus/25.05
 
+[test_requires]
+catch2/3.11.0
+
 [generators]
 CMakeDeps
 CMakeToolchain

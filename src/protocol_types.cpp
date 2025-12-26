@@ -1,6 +1,23 @@
 #include "protocol_types.hpp"
 
+#include <cctype>
 #include <format>
+#include <ranges>
+
+namespace {
+
+/// Trims whitespace and converts to lowercase.
+auto normalize_str(const std::string_view sv) -> std::string {
+  auto normalized = sv | std::views::drop_while([](unsigned char c) { return std::isspace(c); })
+                    | std::views::reverse
+                    | std::views::drop_while([](unsigned char c) { return std::isspace(c); })
+                    | std::views::reverse
+                    | std::views::transform([](unsigned char c) { return std::tolower(c); });
+
+  return {normalized.begin(), normalized.end()};
+}
+
+} // namespace
 
 namespace nab {
 
@@ -29,10 +46,13 @@ auto parse_protocol(const std::uint8_t protocol_num) -> Protocol {
 }
 
 auto parse_protocol(const std::string_view protocol_str) -> Protocol {
-  if (protocol_str == "tcp") { return Protocol::TCP; }
-  if (protocol_str == "udp") { return Protocol::UDP; }
-  if (protocol_str == "icmp") { return Protocol::ICMP; }
-  if (protocol_str == "igmp") { return Protocol::IGMP; }
+  const std::string normalized{normalize_str(protocol_str)};
+
+  if (normalized == "tcp") { return Protocol::TCP; }
+  if (normalized == "udp") { return Protocol::UDP; }
+  if (normalized == "icmp") { return Protocol::ICMP; }
+  if (normalized == "igmp") { return Protocol::IGMP; }
+
   return Protocol::Unknown;
 }
 
