@@ -6,6 +6,7 @@
     "cppcoreguidelines",
     "bugprone",
     "hicpp",
-    "ctest"
+    "ctest",
+    "NOLINTNEXTLINE"
   ]
 }

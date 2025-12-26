@@ -31,7 +31,9 @@ auto format_ip_addr(const std::span<const std::uint8_t, 4> ip) -> std::string {
 
 auto parse_ethernet_header(const std::span<const std::uint8_t> packet) -> std::optional<EtherType> {
   if (packet.size() < ETHERNET_BYTES) { return std::nullopt; }
+
   // EtherType is big-endian (2 bytes at offset 12-13)
+  // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
   return static_cast<EtherType>((packet[12] << 8) | packet[13]);
 }
 
@@ -46,6 +48,8 @@ auto parse_ipv4_packet(const std::span<const std::uint8_t> packet) -> std::optio
   const auto internet_header_len = static_cast<std::uint8_t>(ip_header[0] & 0x0F);
 
   ParsedPacket parsed;
+
+  // NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
 
   // Byte 9: protocol (6=TCP, 17=UDP, 1=ICMP, etc.)
   parsed.protocol = parse_protocol(ip_header[9]);
@@ -80,6 +84,8 @@ auto parse_ipv4_packet(const std::span<const std::uint8_t> packet) -> std::optio
           static_cast<std::uint16_t>((transport_header[0] << 8) | transport_header[1]);
       parsed.dst_port =
           static_cast<std::uint16_t>((transport_header[2] << 8) | transport_header[3]);
+
+      // NOLINTEND(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
     }
   }
 
