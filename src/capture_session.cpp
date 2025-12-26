@@ -162,6 +162,14 @@ void CaptureSession::print_packet(const pcpp::RawPacket *raw_packet, const Parse
 
   // Print based on protocol
   if (parsed.protocol == Protocol::TCP || parsed.protocol == Protocol::UDP) {
+    // TCP/UDP packets should have ports, but handle truncated packets gracefully
+    if (!parsed.src_port.has_value() || !parsed.dst_port.has_value()) {
+      std::cout << std::format("#{}: {} -> {} {} (truncated, no ports) {}B\n", count,
+                               parsed.src_ip.value(), parsed.dst_ip.value(),
+                               protocol_to_string(parsed.protocol), len);
+      return;
+    }
+
     std::cout << std::format("#{}: {}:{} -> {}:{} ", count, parsed.src_ip.value(),
                              parsed.src_port.value(), parsed.dst_ip.value(),
                              parsed.dst_port.value());

@@ -206,3 +206,45 @@ TEST_CASE("parse_ipv4_packet handles missing ports for ICMP", "[ipv4][ports]") {
   CHECK_FALSE(parsed->src_port.has_value());
   CHECK_FALSE(parsed->dst_port.has_value());
 }
+
+TEST_CASE("parse_ipv4_packet handles truncated TCP header", "[ipv4][ports][truncated]") {
+  // clang-format off
+  static constexpr std::array<std::uint8_t, 44> packet = {
+      // Ethernet header (14 bytes)
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+      0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+      0x08, 0x00,
+
+      // IPv4 header (20 bytes)
+      0x45,                                // Version=4, IHL=5
+      0x00,                                // DSCP/ECN
+      0x00, 0x1E,                          // Total length: 30 bytes (20 IP + 10 partial TCP)
+      0x00, 0x00,                          // Identification
+      0x00, 0x00,                          // Flags + Fragment offset
+      0x40,                                // TTL: 64
+      0x06,                                // Protocol: 6 = TCP
+      0x00, 0x00,                          // Header checksum
+      192, 168, 1, 1,                      // Source IP
+      10, 0, 0, 1,                         // Dest IP
+
+      // Truncated TCP header (only 10 bytes instead of minimum 20)
+      0x04, 0xD2,                          // Source port: 1234
+      0x01, 0xBB,                          // Dest port: 443
+      0x00, 0x00, 0x00, 0x00,              // Sequence number (partial)
+      0x00, 0x00,                          // Ack number (truncated here)
+      // Missing: data offset, flags, window, checksum, urgent pointer
+  };
+  // clang-format on
+
+  const auto parsed = parse_ipv4_packet(std::span{packet});
+
+  // Should successfully parse IPv4 info but not ports (truncated transport header)
+  REQUIRE(parsed.has_value());
+  CHECK(parsed->protocol == Protocol::TCP);
+  CHECK(parsed->src_ip == "192.168.1.1");
+  CHECK(parsed->dst_ip == "10.0.0.1");
+
+  // Ports should be missing due to truncation
+  CHECK_FALSE(parsed->src_port.has_value());
+  CHECK_FALSE(parsed->dst_port.has_value());
+}
