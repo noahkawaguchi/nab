@@ -27,7 +27,10 @@ target_link_libraries(nab PRIVATE nab_lib)
 # Build tests
 find_package(Catch2 3 REQUIRED)
 add_executable(nab_tests
-    tests/test_packet_parser.cpp
+    tests/test_ethernet_parsing.cpp
+    tests/test_ipv4_parsing.cpp
+    tests/test_packet_filter.cpp
+    tests/test_protocol_utils.cpp
 )
 target_link_libraries(nab_tests PRIVATE nab_lib Catch2::Catch2WithMain)
 
