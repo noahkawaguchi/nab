@@ -30,12 +30,22 @@ auto main(int argc, char *argv[]) -> int {
   for (int i = 1; i < argc; i++) {
     const std::string arg{args[i]};
 
-    if (arg == "-o" && i + 1 < argc) {
+    if (arg == "-o") {
+      if (i + 1 >= argc) {
+        std::cerr << "-o requires a value\n";
+        return 1;
+      }
+
       output_file_name = args[i + 1];
       i++; // Skip next argument
     }
 
-    else if (arg == "--protocol" && i + 1 < argc) {
+    else if (arg == "--protocol") {
+      if (i + 1 >= argc) {
+        std::cerr << "--protocol requires a value\n";
+        return 1;
+      }
+
       std::string_view protocol_arg{args[i + 1]};
       protocol.emplace(nab::parse_protocol(protocol_arg));
 
@@ -48,10 +58,14 @@ auto main(int argc, char *argv[]) -> int {
       i++; // Skip next argument
     }
 
-    else if (arg == "--port" && i + 1 < argc) {
+    else if (arg == "--port") {
+      if (i + 1 >= argc) {
+        std::cerr << "--port requires a value\n";
+        return 1;
+      }
+
       try {
-        const auto port_arg = static_cast<std::uint16_t>(std::stoi(args[i + 1]));
-        port = port_arg;
+        port = static_cast<std::uint16_t>(std::stoi(args[i + 1]));
       } catch (...) {
         std::cerr << "Invalid port number: " << args[i + 1] << '\n';
         return 1;
@@ -60,7 +74,12 @@ auto main(int argc, char *argv[]) -> int {
       i++; // Skip next argument
     }
 
-    else if (arg == "--host" && i + 1 < argc) {
+    else if (arg == "--host") {
+      if (i + 1 >= argc) {
+        std::cerr << "--host requires a value\n";
+        return 1;
+      }
+
       host.emplace(args[i + 1]);
       i++; // Skip next argument
     }
