@@ -34,10 +34,6 @@ private:
   /// Instance method that handles the packet.
   void handle_packet(const pcpp::RawPacket *raw_packet);
 
-  /// Prints packet information to stdout.
-  static void print_packet(const pcpp::RawPacket *raw_packet, const ParsedPacket &parsed,
-                           int count);
-
   /// Whether the session should stop (set by signal handler).
   std::atomic<bool> stop_capture_{false};
   /// The number of packets processed in the session.

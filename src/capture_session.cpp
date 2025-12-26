@@ -8,6 +8,52 @@
 #include "packet_parser.hpp"
 #include "protocol_types.hpp"
 
+namespace {
+
+/// Prints packet information to stdout.
+void print_packet(const pcpp::RawPacket *raw_packet, const nab::ParsedPacket &parsed,
+                  const int count) {
+
+  const int len{raw_packet->getRawDataLen()};
+
+  // Print based on protocol
+  if (parsed.protocol == nab::Protocol::TCP || parsed.protocol == nab::Protocol::UDP) {
+    // TCP/UDP packets should have ports, but handle truncated packets gracefully
+    if (!parsed.src_port.has_value() || !parsed.dst_port.has_value()) {
+      std::cout << std::format("#{}: {} -> {} {} (truncated, no ports) {}B\n", count,
+                               parsed.src_ip.value(), parsed.dst_ip.value(),
+                               protocol_to_string(parsed.protocol), len);
+      return;
+    }
+
+    std::cout << std::format("#{}: {}:{} -> {}:{} ", count, parsed.src_ip.value(),
+                             parsed.src_port.value(), parsed.dst_ip.value(),
+                             parsed.dst_port.value());
+
+    // Protocol name
+    std::cout << protocol_to_string(parsed.protocol);
+
+    // Add service name if it's a well-known port
+    const std::string src_service = nab::get_service_name(parsed.src_port.value());
+    const std::string dst_service = nab::get_service_name(parsed.dst_port.value());
+
+    // Show service name (prefer destination port for typical client->server traffic)
+    if (!dst_service.empty()) {
+      std::cout << dst_service;
+    } else if (!src_service.empty()) {
+      std::cout << src_service;
+    }
+
+    std::cout << std::format(" {}B\n", len);
+  } else {
+    // Non-TCP/UDP protocols (ICMP, etc.)
+    std::cout << std::format("#{}: {} -> {} {} {}B\n", count, parsed.src_ip.value(),
+                             parsed.dst_ip.value(), protocol_to_string(parsed.protocol), len);
+  }
+}
+
+} // namespace
+
 namespace nab {
 
 auto CaptureSession::run() -> int {
@@ -152,47 +198,6 @@ void CaptureSession::handle_packet(const pcpp::RawPacket *raw_packet) {
     if (writer_) { writer_->writePacket(*raw_packet); }
 
     std::cout << std::format("#{}: {} {}B\n", count, ethertype_to_string(ethertype), len);
-  }
-}
-
-void CaptureSession::print_packet(const pcpp::RawPacket *raw_packet, const ParsedPacket &parsed,
-                                  const int count) {
-
-  const int len{raw_packet->getRawDataLen()};
-
-  // Print based on protocol
-  if (parsed.protocol == Protocol::TCP || parsed.protocol == Protocol::UDP) {
-    // TCP/UDP packets should have ports, but handle truncated packets gracefully
-    if (!parsed.src_port.has_value() || !parsed.dst_port.has_value()) {
-      std::cout << std::format("#{}: {} -> {} {} (truncated, no ports) {}B\n", count,
-                               parsed.src_ip.value(), parsed.dst_ip.value(),
-                               protocol_to_string(parsed.protocol), len);
-      return;
-    }
-
-    std::cout << std::format("#{}: {}:{} -> {}:{} ", count, parsed.src_ip.value(),
-                             parsed.src_port.value(), parsed.dst_ip.value(),
-                             parsed.dst_port.value());
-
-    // Protocol name
-    std::cout << protocol_to_string(parsed.protocol);
-
-    // Add service name if it's a well-known port
-    const std::string src_service = get_service_name(parsed.src_port.value());
-    const std::string dst_service = get_service_name(parsed.dst_port.value());
-
-    // Show service name (prefer destination port for typical client->server traffic)
-    if (!dst_service.empty()) {
-      std::cout << dst_service;
-    } else if (!src_service.empty()) {
-      std::cout << src_service;
-    }
-
-    std::cout << std::format(" {}B\n", len);
-  } else {
-    // Non-TCP/UDP protocols (ICMP, etc.)
-    std::cout << std::format("#{}: {} -> {} {} {}B\n", count, parsed.src_ip.value(),
-                             parsed.dst_ip.value(), protocol_to_string(parsed.protocol), len);
   }
 }
 
