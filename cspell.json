@@ -7,6 +7,11 @@
     "bugprone",
     "hicpp",
     "ctest",
-    "NOLINTNEXTLINE"
+    "NOLINTNEXTLINE",
+    "tcpdump",
+    "Wireshark",
+    "IGMP",
+    "libpcap",
+    "RAII"
   ]
 }
