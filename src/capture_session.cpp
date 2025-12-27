@@ -1,7 +1,7 @@
 #include "capture_session.hpp"
 
-#include <format>
-#include <iostream>
+#include <cstdio>
+#include <print>
 
 #include <pcapplusplus/PcapLiveDeviceList.h>
 
@@ -20,18 +20,16 @@ void print_packet(const pcpp::RawPacket *raw_packet, const nab::ParsedPacket &pa
   if (parsed.protocol == nab::Protocol::TCP || parsed.protocol == nab::Protocol::UDP) {
     // TCP/UDP packets should have ports, but handle truncated packets gracefully
     if (!parsed.src_port.has_value() || !parsed.dst_port.has_value()) {
-      std::cout << std::format("#{}: {} -> {} {} (truncated, no ports) {}B\n", count,
-                               parsed.src_ip.value(), parsed.dst_ip.value(),
-                               protocol_to_string(parsed.protocol), len);
+      std::println("#{}: {} -> {} {} (truncated, no ports) {}B", count, parsed.src_ip.value(),
+                   parsed.dst_ip.value(), protocol_to_string(parsed.protocol), len);
       return;
     }
 
-    std::cout << std::format("#{}: {}:{} -> {}:{} ", count, parsed.src_ip.value(),
-                             parsed.src_port.value(), parsed.dst_ip.value(),
-                             parsed.dst_port.value());
+    std::print("#{}: {}:{} -> {}:{} ", count, parsed.src_ip.value(), parsed.src_port.value(),
+               parsed.dst_ip.value(), parsed.dst_port.value());
 
     // Protocol name
-    std::cout << protocol_to_string(parsed.protocol);
+    std::print("{}", protocol_to_string(parsed.protocol));
 
     // Add service name if it's a well-known port
     const std::string src_service = nab::get_service_name(parsed.src_port.value());
@@ -39,16 +37,16 @@ void print_packet(const pcpp::RawPacket *raw_packet, const nab::ParsedPacket &pa
 
     // Show service name (prefer destination port for typical client->server traffic)
     if (!dst_service.empty()) {
-      std::cout << dst_service;
+      std::print("{}", dst_service);
     } else if (!src_service.empty()) {
-      std::cout << src_service;
+      std::print("{}", src_service);
     }
 
-    std::cout << std::format(" {}B\n", len);
+    std::println(" {}B", len);
   } else {
     // Non-TCP/UDP protocols (ICMP, etc.)
-    std::cout << std::format("#{}: {} -> {} {} {}B\n", count, parsed.src_ip.value(),
-                             parsed.dst_ip.value(), protocol_to_string(parsed.protocol), len);
+    std::println("#{}: {} -> {} {} {}B", count, parsed.src_ip.value(), parsed.dst_ip.value(),
+                 protocol_to_string(parsed.protocol), len);
   }
 }
 
@@ -63,15 +61,15 @@ auto CaptureSession::run() -> int {
         std::make_unique<pcpp::PcapFileWriterDevice>(output_file_name_, pcpp::LINKTYPE_ETHERNET);
 
     if (!writer_->open()) {
-      std::cerr << "Failed to open output file: " << output_file_name_ << '\n';
+      std::println(stderr, "Failed to open output file: {}", output_file_name_);
       return 1;
     }
 
-    std::cout << "Writing packets to: " << output_file_name_ << '\n';
+    std::println("Writing packets to: {}", output_file_name_);
   }
 
   // Display active filters
-  if (filter_.has_any_filter()) { std::cout << filter_.description() << '\n'; }
+  if (filter_.has_any_filter()) { std::println("{}", filter_.description()); }
 
   pcpp::PcapLiveDevice *device{nullptr};
 
@@ -84,18 +82,18 @@ auto CaptureSession::run() -> int {
   }
 
   if (device == nullptr) {
-    std::cerr << "No suitable network interface found\n";
+    std::println(stderr, "No suitable network interface found");
     return 1;
   }
 
-  std::cout << "Using interface: " << device->getName() << '\n';
+  std::println("Using interface: {}", device->getName());
 
   if (!device->open()) {
-    std::cerr << "Failed to open device\n";
+    std::println(stderr, "Failed to open device");
     return 1;
   }
 
-  std::cout << "Capturing packets... (Press Ctrl+C to stop)\n";
+  std::println("Capturing packets... (Press Ctrl+C to stop)");
 
   // Pass "this" pointer to static callback via cookie
   device->startCapture(packet_callback, this);
@@ -118,14 +116,13 @@ auto CaptureSession::run() -> int {
   const int filtered{filtered_packet_count_.load()};
   const int displayed{total - ssh - filtered};
 
-  std::cout << "\nTotal packets captured: " << total << '\n'
-            << "  Filtered out: " << filtered << '\n'
-            << "  SSH packets (excluded from display): " << ssh << '\n'
-            << "  Displayed: " << displayed << '\n';
+  std::print("\nTotal packets captured: {}\n"
+             "  Filtered out: {}\n"
+             "  SSH packets (excluded from display): {}\n"
+             "  Displayed: {}\n",
+             total, filtered, ssh, displayed);
 
-  if (!output_file_name_.empty()) {
-    std::cout << "Packets written to: " << output_file_name_ << '\n';
-  }
+  if (!output_file_name_.empty()) { std::println("Packets written to: {}", output_file_name_); }
 
   return 0;
 }
@@ -154,7 +151,7 @@ void CaptureSession::handle_packet(const pcpp::RawPacket *raw_packet) {
   // Parse Ethernet header
   const auto maybe_ethertype = parse_ethernet_header(packet);
   if (!maybe_ethertype) {
-    std::cout << std::format("#{}: Invalid ({}B)\n", count, len);
+    std::println("#{}: Invalid ({}B)", count, len);
     return;
   }
   const auto &ethertype = *maybe_ethertype;
@@ -163,7 +160,7 @@ void CaptureSession::handle_packet(const pcpp::RawPacket *raw_packet) {
   if (ethertype == EtherType::IPv4) {
     const auto maybe_parsed = parse_ipv4_packet(packet);
     if (!maybe_parsed) {
-      std::cout << std::format("#{}: IPv4 (truncated, {}B)\n", count, len);
+      std::println("#{}: IPv4 (truncated, {}B)", count, len);
       return;
     }
     const auto &parsed = *maybe_parsed;
@@ -197,7 +194,7 @@ void CaptureSession::handle_packet(const pcpp::RawPacket *raw_packet) {
     // Write packet to file if writer is provided
     if (writer_) { writer_->writePacket(*raw_packet); }
 
-    std::cout << std::format("#{}: {} {}B\n", count, ethertype_to_string(ethertype), len);
+    std::println("#{}: {} {}B", count, ethertype_to_string(ethertype), len);
   }
 }
 

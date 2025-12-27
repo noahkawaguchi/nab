@@ -1,9 +1,10 @@
 #include <charconv>
 #include <csignal>
 #include <cstddef>
-#include <iostream>
+#include <cstdio>
 #include <memory>
 #include <optional>
+#include <print>
 #include <span>
 #include <string>
 #include <string_view>
@@ -12,6 +13,8 @@
 #include "capture_session.hpp"
 #include "packet_filter.hpp"
 #include "protocol_types.hpp"
+
+namespace {
 
 // NOLINTBEGIN(cppcoreguidelines-avoid-non-const-global-variables)
 
@@ -38,7 +41,7 @@ auto parse_args(std::span<char *> args) -> std::variant<std::unique_ptr<nab::Cap
 
     if (arg == "-o") {
       if (i + 1 >= args_len) {
-        std::cerr << "-o requires a value\n";
+        std::println(stderr, "-o requires a value");
         return 1;
       }
       output_file_name = args[++i];
@@ -46,7 +49,7 @@ auto parse_args(std::span<char *> args) -> std::variant<std::unique_ptr<nab::Cap
 
     else if (arg == "--protocol") {
       if (i + 1 >= args_len) {
-        std::cerr << "--protocol requires a value\n";
+        std::println(stderr, "--protocol requires a value");
         return 1;
       }
 
@@ -55,15 +58,15 @@ auto parse_args(std::span<char *> args) -> std::variant<std::unique_ptr<nab::Cap
       protocol.emplace(nab::parse_protocol(protocol_arg));
 
       if (protocol == nab::Protocol::Unknown) {
-        std::cerr << "Invalid protocol: " << protocol_arg << '\n'
-                  << "Valid protocols: tcp, udp, icmp, igmp\n";
+        std::println(stderr, "Invalid protocol: {}\nValid protocols: tcp, udp, icmp, igmp",
+                     protocol_arg);
         return 0;
       }
     }
 
     else if (arg == "--port") {
       if (i + 1 >= args_len) {
-        std::cerr << "--port requires a value\n";
+        std::println(stderr, "--port requires a value");
         return 1;
       }
 
@@ -75,7 +78,7 @@ auto parse_args(std::span<char *> args) -> std::variant<std::unique_ptr<nab::Cap
           std::from_chars(port_arg.data(), port_arg.data() + port_arg.size(), port_num);
 
       if (ec != std::errc{}) {
-        std::cerr << "Invalid port number: " << port_arg << '\n';
+        std::println(stderr, "Invalid port number: {}", port_arg);
         return 1;
       }
 
@@ -84,26 +87,25 @@ auto parse_args(std::span<char *> args) -> std::variant<std::unique_ptr<nab::Cap
 
     else if (arg == "--host") {
       if (i + 1 >= args_len) {
-        std::cerr << "--host requires a value\n";
+        std::println(stderr, "--host requires a value");
         return 1;
       }
       host.emplace(args[++i]);
     }
 
     else if (arg == "--help" || arg == "-h") {
-      std::cout << "Usage: " << args[0] << " [options]\n"
-                << "Options:\n"
-                << "  -o <file>          Write captured packets to pcap file\n"
-                << "  --protocol <proto> Filter by protocol (tcp, udp, icmp)\n"
-                << "  --port <num>       Filter by port (source or destination)\n"
-                << "  --host <ip>        Filter by IP address (source or destination)\n"
-                << "  -h, --help         Show this help message\n";
+      std::println("Usage: {} [options]", args[0]);
+      std::print("Options:\n"
+                 "  -o <file>          Write captured packets to pcap file\n"
+                 "  --protocol <proto> Filter by protocol (tcp, udp, icmp)\n"
+                 "  --port <num>       Filter by port (source or destination)\n"
+                 "  --host <ip>        Filter by IP address (source or destination)\n"
+                 "  -h, --help         Show this help message\n");
       return 0;
     }
 
     else {
-      std::cerr << "Unknown argument: " << arg << '\n'
-                << "Use -h or --help for usage information\n";
+      std::println(stderr, "Unknown argument: {}\nUse -h or --help for usage information", arg);
       return 1;
     }
   }
@@ -112,6 +114,8 @@ auto parse_args(std::span<char *> args) -> std::variant<std::unique_ptr<nab::Cap
                                                output_file_name);
 }
 // NOLINTEND(readability-function-cognitive-complexity)
+
+} // namespace
 
 auto main(int argc, char *argv[]) -> int {
   // Parse command line args into session config or exit
@@ -122,7 +126,7 @@ auto main(int argc, char *argv[]) -> int {
   // Set up signal handler for Ctrl+C
   g_session = session.get();
   if (std::signal(SIGINT, signal_handler) == SIG_ERR) {
-    std::cerr << "Failed to install signal handler\n";
+    std::println(stderr, "Failed to install signal handler");
     return 1;
   }
 
