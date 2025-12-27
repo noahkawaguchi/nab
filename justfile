@@ -2,7 +2,11 @@
 build:
     cmake --build build
 
-# Run tests
+# Build and run the main executable
+run *ARGS: build
+    ./build/nab {{ARGS}}
+
+# Build and run tests
 test: build
     ctest --test-dir build --output-on-failure
 
