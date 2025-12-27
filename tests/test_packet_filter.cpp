@@ -6,7 +6,7 @@
 using namespace nab;
 
 TEST_CASE("PacketFilter matches protocol correctly", "[filter]") {
-  static constexpr ParsedPacket tcp_packet = {
+  static constexpr ParsedPacket tcp_packet{
       .protocol = Protocol::TCP,
       .src_port = 12345,
       .dst_port = 80,
@@ -24,7 +24,7 @@ TEST_CASE("PacketFilter matches protocol correctly", "[filter]") {
 }
 
 TEST_CASE("PacketFilter matches port correctly", "[filter]") {
-  static constexpr ParsedPacket packet = {
+  static constexpr ParsedPacket packet{
       .protocol = Protocol::TCP,
       .src_port = 12345,
       .dst_port = 80,
@@ -46,7 +46,7 @@ TEST_CASE("PacketFilter matches port correctly", "[filter]") {
 }
 
 TEST_CASE("PacketFilter matches host IP correctly", "[filter]") {
-  static constexpr ParsedPacket packet = {
+  static constexpr ParsedPacket packet{
       .protocol = Protocol::TCP,
       .src_ip = "192.168.1.100",
       .dst_ip = "10.0.0.1",
@@ -66,7 +66,7 @@ TEST_CASE("PacketFilter matches host IP correctly", "[filter]") {
 }
 
 TEST_CASE("PacketFilter combines multiple criteria", "[filter]") {
-  static constexpr ParsedPacket packet = {
+  static constexpr ParsedPacket packet{
       .protocol = Protocol::TCP,
       .src_port = 54321,
       .dst_port = 443,

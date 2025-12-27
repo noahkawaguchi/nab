@@ -11,7 +11,7 @@ using namespace nab;
 
 TEST_CASE("parse_ipv4_packet extracts source and destination IPs", "[ipv4]") {
   // clang-format off
-  static constexpr std::array<std::uint8_t, 34> packet = {
+  static constexpr std::array<std::uint8_t, 34> packet{
       // Ethernet header (14 bytes)
       0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  // Dest MAC
       0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  // Src MAC
@@ -44,7 +44,7 @@ TEST_CASE("parse_ipv4_packet identifies different protocols", "[ipv4]") {
   // clang-format off
 
   // Base packet template
-  std::array<std::uint8_t, 34> packet = {
+  std::array<std::uint8_t, 34> packet{
       0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  // Dest MAC
       0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  // Src MAC
       0x08, 0x00,                          // IPv4
@@ -57,7 +57,7 @@ TEST_CASE("parse_ipv4_packet identifies different protocols", "[ipv4]") {
   };
   // clang-format on
 
-  constexpr std::size_t protocol_byte = 23; // Protocol field is at byte 23
+  constexpr std::size_t protocol_byte{23}; // Protocol field is at byte 23
 
   SECTION("TCP protocol") {
     packet[protocol_byte] = 6;
@@ -83,7 +83,7 @@ TEST_CASE("parse_ipv4_packet identifies different protocols", "[ipv4]") {
 
 TEST_CASE("parse_ipv4_packet rejects truncated packets", "[ipv4]") {
   // Only Ethernet header, no IPv4 header
-  static constexpr std::array<std::uint8_t, 14> packet = {
+  static constexpr std::array<std::uint8_t, 14> packet{
       0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x08, 0x00,
   };
 
@@ -92,7 +92,7 @@ TEST_CASE("parse_ipv4_packet rejects truncated packets", "[ipv4]") {
 
 TEST_CASE("parse_ipv4_packet extracts TCP ports", "[ipv4][ports]") {
   // clang-format off
-  static constexpr std::array<std::uint8_t, 54> packet = {
+  static constexpr std::array<std::uint8_t, 54> packet{
       // Ethernet header (14 bytes)
       0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
       0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -133,7 +133,7 @@ TEST_CASE("parse_ipv4_packet extracts TCP ports", "[ipv4][ports]") {
 
 TEST_CASE("parse_ipv4_packet extracts UDP ports", "[ipv4][ports]") {
   // clang-format off
-  static constexpr std::array<std::uint8_t, 42> packet = {
+  static constexpr std::array<std::uint8_t, 42> packet{
       // Ethernet header (14 bytes)
       0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
       0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -171,7 +171,7 @@ TEST_CASE("parse_ipv4_packet extracts UDP ports", "[ipv4][ports]") {
 
 TEST_CASE("parse_ipv4_packet handles missing ports for ICMP", "[ipv4][ports]") {
   // clang-format off
-  static constexpr std::array<std::uint8_t, 42> packet = {
+  static constexpr std::array<std::uint8_t, 42> packet{
       // Ethernet header (14 bytes)
       0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
       0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -209,7 +209,7 @@ TEST_CASE("parse_ipv4_packet handles missing ports for ICMP", "[ipv4][ports]") {
 
 TEST_CASE("parse_ipv4_packet handles truncated TCP header", "[ipv4][ports][truncated]") {
   // clang-format off
-  static constexpr std::array<std::uint8_t, 44> packet = {
+  static constexpr std::array<std::uint8_t, 44> packet{
       // Ethernet header (14 bytes)
       0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
       0x00, 0x00, 0x00, 0x00, 0x00, 0x00,

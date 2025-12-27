@@ -12,7 +12,7 @@ auto PacketFilter::matches(const ParsedPacket &packet) const -> bool {
 
   // Check port filter (matches source OR destination)
   if (port_.has_value()) {
-    bool port_matches = false;
+    bool port_matches{false};
     if (packet.src_port.has_value() && packet.src_port.value() == port_.value()) {
       port_matches = true;
     }
@@ -24,7 +24,7 @@ auto PacketFilter::matches(const ParsedPacket &packet) const -> bool {
 
   // Check host filter (matches source OR destination)
   if (host_.has_value()) {
-    bool host_matches = false;
+    bool host_matches{false};
     if (packet.src_ip.has_value() && packet.src_ip.value() == host_.value()) {
       host_matches = true;
     }
@@ -38,7 +38,7 @@ auto PacketFilter::matches(const ParsedPacket &packet) const -> bool {
 }
 
 auto PacketFilter::description() const -> std::string {
-  std::string desc = "Active filter(s):";
+  std::string desc{"Active filter(s):"};
   if (protocol_.has_value()) {
     desc += std::format(" protocol={}", protocol_to_string(protocol_.value()));
   }

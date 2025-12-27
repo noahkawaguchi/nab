@@ -120,7 +120,7 @@ auto parse_args(std::span<char *> args) -> std::variant<std::unique_ptr<nab::Cap
 auto main(int argc, char *argv[]) -> int {
   // Parse command line args into session config or exit
   const auto arg_result = parse_args(std::span{argv, static_cast<std::size_t>(argc)});
-  if (const int *status_code = std::get_if<int>(&arg_result)) { return *status_code; }
+  if (const int *status_code{std::get_if<int>(&arg_result)}) { return *status_code; }
   const auto &session = std::get<std::unique_ptr<nab::CaptureSession>>(arg_result);
 
   // Set up signal handler for Ctrl+C
