@@ -55,6 +55,8 @@ void print_packet(const pcpp::RawPacket *raw_packet, const nab::ParsedPacket &pa
 namespace nab {
 
 auto CaptureSession::run() -> int {
+  std::println();
+
   // Set up pcap file writer if output file is specified
   if (!output_file_name_.empty()) {
     writer_ =
@@ -93,7 +95,7 @@ auto CaptureSession::run() -> int {
     return 1;
   }
 
-  std::println("Capturing packets... (Press Ctrl+C to stop)");
+  std::print("\nCapturing packets... (Press Ctrl+C to stop)\n\n");
 
   // Pass "this" pointer to static callback via cookie
   device->startCapture(packet_callback, this);
@@ -116,7 +118,7 @@ auto CaptureSession::run() -> int {
   const int filtered{filtered_packet_count_.load()};
   const int displayed{total - ssh - filtered};
 
-  std::print("\nTotal packets captured: {}\n"
+  std::print("\n\nTotal packets captured: {}\n"
              "  Filtered out: {}\n"
              "  SSH packets (excluded from display): {}\n"
              "  Displayed: {}\n",

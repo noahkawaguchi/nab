@@ -38,7 +38,7 @@ auto PacketFilter::matches(const ParsedPacket &packet) const -> bool {
 }
 
 auto PacketFilter::description() const -> std::string {
-  std::string desc = "Active filters:";
+  std::string desc = "Active filter(s):";
   if (protocol_.has_value()) {
     desc += std::format(" protocol={}", protocol_to_string(protocol_.value()));
   }
