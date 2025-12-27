@@ -8,13 +8,12 @@ namespace {
 
 /// Trims whitespace and converts to lowercase.
 auto normalize_str(const std::string_view sv) -> std::string {
-  auto normalized = sv | std::views::drop_while([](unsigned char c) { return std::isspace(c); })
-                    | std::views::reverse
-                    | std::views::drop_while([](unsigned char c) { return std::isspace(c); })
-                    | std::views::reverse
-                    | std::views::transform([](unsigned char c) { return std::tolower(c); });
-
-  return {normalized.begin(), normalized.end()};
+  return sv | std::views::drop_while([](unsigned char c) { return std::isspace(c); })
+         | std::views::reverse
+         | std::views::drop_while([](unsigned char c) { return std::isspace(c); })
+         | std::views::reverse
+         | std::views::transform([](unsigned char c) { return std::tolower(c); })
+         | std::ranges::to<std::string>();
 }
 
 } // namespace
