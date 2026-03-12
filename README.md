@@ -1,3 +1,5 @@
+[English](README.md) | [日本語](README.ja.md)
+
 # Nab
 
 A lightweight, modern C++23 network packet capture and analysis tool.
