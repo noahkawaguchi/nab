@@ -118,12 +118,9 @@ auto CaptureSession::run() -> int {
   const int filtered{filtered_packet_count_.load()};
   const int displayed{total - ssh - filtered};
 
-  std::print("\n\nTotal packets captured: {}\n"
-             "  Filtered out: {}\n"
-             "  SSH packets (excluded from display): {}\n"
-             "  Displayed: {}\n",
-             total, filtered, ssh, displayed);
-
+  std::print("\n\nTotal packets captured: {}\n  Filtered out: {}\n", total, filtered);
+  if (ssh > 0) { std::println("  SSH packets (excluded from display): {}", ssh); }
+  std::println("  Displayed: {}\n", displayed);
   if (!output_file_name_.empty()) { std::println("Packets written to: {}", output_file_name_); }
 
   return 0;
