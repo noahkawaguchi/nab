@@ -30,7 +30,8 @@ void signal_handler(int /*signal*/) {
 
 /// Parses command line arguments to configure a `CaptureSession`, or returns a status code to exit
 /// early without executing the session.
-auto parse_args(std::span<char *> args) -> std::variant<std::unique_ptr<nab::CaptureSession>, int> {
+auto parse_args(const std::span<const char *const> args)
+    -> std::variant<std::unique_ptr<nab::CaptureSession>, int> {
   std::string output_file_name{};
   std::optional<nab::Protocol> protocol{};
   std::optional<std::uint16_t> port{};
@@ -117,10 +118,10 @@ auto parse_args(std::span<char *> args) -> std::variant<std::unique_ptr<nab::Cap
 
 } // namespace
 
-auto main(int argc, char *argv[]) -> int {
+auto main(const int argc, const char *const argv[]) -> int {
   // Parse command line args into session config or exit
   const auto arg_result = parse_args(std::span{argv, static_cast<std::size_t>(argc)});
-  if (const int *status_code{std::get_if<int>(&arg_result)}) { return *status_code; }
+  if (const int *const status_code{std::get_if<int>(&arg_result)}) { return *status_code; }
   const auto &session = std::get<std::unique_ptr<nab::CaptureSession>>(arg_result);
 
   // Set up signal handler for Ctrl+C

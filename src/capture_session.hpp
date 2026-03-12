@@ -18,7 +18,7 @@ class CaptureSession {
 public:
   /// Configures capture session with optional filter and output file name.
   CaptureSession(PacketFilter filter, std::string output_file_name)
-      : filter_(std::move(filter)), output_file_name_(std::move(output_file_name)){};
+      : filter_(std::move(filter)), output_file_name_(std::move(output_file_name)) {};
 
   /// Runs the capture session, returning 0 on success and 1 on error.
   auto run() -> int;

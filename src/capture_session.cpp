@@ -11,7 +11,7 @@
 namespace {
 
 /// Prints packet information to stdout.
-void print_packet(const pcpp::RawPacket *raw_packet, const nab::ParsedPacket &parsed,
+void print_packet(const pcpp::RawPacket *const raw_packet, const nab::ParsedPacket &parsed,
                   const int count) {
 
   const int len{raw_packet->getRawDataLen()};
@@ -32,8 +32,8 @@ void print_packet(const pcpp::RawPacket *raw_packet, const nab::ParsedPacket &pa
     std::print("{}", protocol_to_string(parsed.protocol));
 
     // Add service name if it's a well-known port
-    const std::string src_service = nab::get_service_name(parsed.src_port.value());
-    const std::string dst_service = nab::get_service_name(parsed.dst_port.value());
+    const std::string src_service{nab::get_service_name(parsed.src_port.value())};
+    const std::string dst_service{nab::get_service_name(parsed.dst_port.value())};
 
     // Show service name (prefer destination port for typical client->server traffic)
     if (!dst_service.empty()) {
@@ -76,7 +76,7 @@ auto CaptureSession::run() -> int {
   pcpp::PcapLiveDevice *device{nullptr};
 
   // Get the first non-loopback device
-  for (auto *d : pcpp::PcapLiveDeviceList::getInstance().getPcapLiveDevicesList()) {
+  for (auto *const d : pcpp::PcapLiveDeviceList::getInstance().getPcapLiveDevicesList()) {
     if (d->getName() != "lo") {
       device = d;
       break;
@@ -134,17 +134,18 @@ void CaptureSession::stop() {
   stop_cv_.notify_one();
 }
 
-void CaptureSession::packet_callback(const pcpp::RawPacket *raw_packet,
-                                     const pcpp::PcapLiveDevice * /*device*/, void *cookie) {
+void CaptureSession::packet_callback(const pcpp::RawPacket *const raw_packet,
+                                     const pcpp::PcapLiveDevice *const /*device*/,
+                                     void *const cookie) {
 
   // Cast cookie back to CaptureSession instance
-  auto *session = static_cast<CaptureSession *>(cookie);
+  auto *const session = static_cast<CaptureSession *>(cookie);
   session->handle_packet(raw_packet);
 }
 
-void CaptureSession::handle_packet(const pcpp::RawPacket *raw_packet) {
+void CaptureSession::handle_packet(const pcpp::RawPacket *const raw_packet) {
   // Create a span view of the raw packet data
-  const std::uint8_t *data{raw_packet->getRawData()};
+  const std::uint8_t *const data{raw_packet->getRawData()};
   const auto len = static_cast<std::size_t>(raw_packet->getRawDataLen());
   const std::span<const std::uint8_t> packet{data, len};
 
