@@ -32,10 +32,10 @@ sudo ./nab
 # Capture only TCP traffic
 sudo ./nab --protocol tcp
 
-# Monitor DNS traffic
+# Capture only DNS traffic
 sudo ./nab --port 53
 
-# Monitor traffic to/from a specific host
+# Capture traffic to/from a specific host
 sudo ./nab --host 192.168.1.100
 
 # Capture HTTPS traffic and save to file
@@ -95,7 +95,7 @@ Packets written to: example.pcap
 
 ### Prerequisites
 
-- Modern C++23 compiler such as GCC 14+ or Clang 18+ (tested with GCC 14 and 15)
+- C++23 compiler such as GCC 14+ or Clang 18+ (tested with GCC 14 and 15)
 - CMake 3.25+
 - Conan 2.x
 - [just](https://github.com/casey/just) command runner (optional)
@@ -132,7 +132,7 @@ sudo ./build/nab
 
 ## Technical Highlights
 
-- **Modern C++23** - Latest features and idioms such as `std::optional`, `std::ranges`, `std::print`, brace initialization, trailing return types, and const-correctness
+- **Modern C++23** - Latest features and idioms such as `std::optional`, `std::ranges`, `std::print`, brace initialization, trailing return types, and const correctness
 - **Low-level networking** - Manual parsing of Ethernet and IPv4 headers from raw bytes
 - **Memory safety** - `std::span` and `std::string_view` for zero-copy buffer access, smart pointers for RAII
 - **Concurrency** - Thread-safe packet handling with atomics and condition variables
