@@ -61,8 +61,8 @@ TEST_CASE("get_service_name returns empty for unknown ports", "[service]") {
   CHECK(get_service_name(1) == "");
 }
 
-TEST_CASE("ethertype_to_string converts EtherTypes correctly", "[ethertype]") {
-  CHECK(ethertype_to_string(EtherType::IPv4) == "IPv4");
-  CHECK(ethertype_to_string(EtherType::ARP) == "ARP");
-  CHECK(ethertype_to_string(EtherType::IPv6) == "IPv6");
+TEST_CASE("ether_type_to_string converts EtherTypes correctly", "[ether_type]") {
+  CHECK(ether_type_to_string(EtherType::IPv4) == "IPv4");
+  CHECK(ether_type_to_string(EtherType::ARP) == "ARP");
+  CHECK(ether_type_to_string(EtherType::IPv6) == "IPv6");
 }

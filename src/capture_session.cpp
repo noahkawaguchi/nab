@@ -149,15 +149,15 @@ void CaptureSession::handle_packet(const pcpp::RawPacket *const raw_packet) {
   const int count{++packet_count_};
 
   // Parse Ethernet header
-  const auto maybe_ethertype = parse_ethernet_header(packet);
-  if (!maybe_ethertype) {
+  const auto maybe_ether_type = parse_ethernet_header(packet);
+  if (!maybe_ether_type) {
     std::println("#{}: Invalid ({}B)", count, len);
     return;
   }
-  const auto &ethertype = *maybe_ethertype;
+  const auto &ether_type = *maybe_ether_type;
 
   // Handle IPv4 packets
-  if (ethertype == EtherType::IPv4) {
+  if (ether_type == EtherType::IPv4) {
     const auto maybe_parsed = parse_ipv4_packet(packet);
     if (!maybe_parsed) {
       std::println("#{}: IPv4 (truncated, {}B)", count, len);
@@ -194,7 +194,7 @@ void CaptureSession::handle_packet(const pcpp::RawPacket *const raw_packet) {
     // Write packet to file if writer is provided
     if (writer_) { writer_->writePacket(*raw_packet); }
 
-    std::println("#{}: {} {}B", count, ethertype_to_string(ethertype), len);
+    std::println("#{}: {} {}B", count, ether_type_to_string(ether_type), len);
   }
 }
 

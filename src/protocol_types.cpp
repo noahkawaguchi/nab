@@ -55,12 +55,12 @@ auto parse_protocol(const std::string_view protocol_str) -> Protocol {
   return Protocol::Unknown;
 }
 
-auto ethertype_to_string(const EtherType ethertype) -> std::string {
-  switch (ethertype) {
+auto ether_type_to_string(const EtherType ether_type) -> std::string {
+  switch (ether_type) {
   case EtherType::IPv4: return "IPv4";
   case EtherType::ARP: return "ARP";
   case EtherType::IPv6: return "IPv6";
-  default: return std::format("EtherType-0x{:04x}", static_cast<std::uint16_t>(ethertype));
+  default: return std::format("EtherType-0x{:04x}", static_cast<std::uint16_t>(ether_type));
   }
 }
 

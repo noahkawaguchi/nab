@@ -32,6 +32,6 @@ auto parse_protocol(std::uint8_t protocol_num) -> Protocol;
 auto parse_protocol(std::string_view protocol_str) -> Protocol;
 
 /// Converts `EtherType` enum to string for display.
-auto ethertype_to_string(EtherType ethertype) -> std::string;
+auto ether_type_to_string(EtherType ether_type) -> std::string;
 
 } // namespace nab

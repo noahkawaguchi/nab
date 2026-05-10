@@ -21,9 +21,9 @@ TEST_CASE("parse_ethernet_header identifies IPv4 packets", "[ethernet]") {
   };
   // clang-format on
 
-  const auto ethertype = parse_ethernet_header(std::span{packet});
-  REQUIRE(ethertype.has_value());
-  CHECK(ethertype.value() == EtherType::IPv4);
+  const auto ether_type = parse_ethernet_header(std::span{packet});
+  REQUIRE(ether_type.has_value());
+  CHECK(ether_type.value() == EtherType::IPv4);
 }
 
 TEST_CASE("parse_ethernet_header identifies ARP packets", "[ethernet]") {
@@ -35,9 +35,9 @@ TEST_CASE("parse_ethernet_header identifies ARP packets", "[ethernet]") {
   };
   // clang-format on
 
-  const auto ethertype = parse_ethernet_header(std::span{packet});
-  REQUIRE(ethertype.has_value());
-  CHECK(ethertype.value() == EtherType::ARP);
+  const auto ether_type = parse_ethernet_header(std::span{packet});
+  REQUIRE(ether_type.has_value());
+  CHECK(ether_type.value() == EtherType::ARP);
 }
 
 TEST_CASE("parse_ethernet_header rejects truncated packets", "[ethernet]") {
