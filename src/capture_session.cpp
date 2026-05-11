@@ -103,7 +103,7 @@ auto CaptureSession::run() -> int {
   // Put the thread to sleep and wait for stop signal
   {
     std::unique_lock lock{stop_mutex_};
-    stop_cv_.wait(lock, [this] { return stop_capture_.load(); });
+    stop_cv_.wait(lock, [this] -> bool { return stop_capture_.load(); });
   }
 
   device->stopCapture();
