@@ -22,7 +22,7 @@ class PacketFilter {
 public:
   PacketFilter(std::optional<Protocol> protocol, std::optional<std::uint16_t> port,
                std::optional<std::string> host)
-      : protocol_(protocol), port_(port), host_(std::move(host)){};
+      : protocol_(protocol), port_(port), host_(std::move(host)) {};
 
   /// Checks whether any of the filters are active.
   [[nodiscard]] auto has_any_filter() const -> bool {
