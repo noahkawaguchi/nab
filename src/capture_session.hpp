@@ -5,9 +5,11 @@
 #include <memory>
 #include <mutex>
 #include <string>
+#include <utility>
 
 #include <pcapplusplus/PcapFileDevice.h>
 #include <pcapplusplus/PcapLiveDevice.h>
+#include <pcapplusplus/RawPacket.h>
 
 #include "packet_filter.hpp"
 
