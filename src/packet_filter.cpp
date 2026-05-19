@@ -1,6 +1,8 @@
 #include "packet_filter.hpp"
 
 #include <format>
+#include <optional>
+#include <string>
 
 #include "protocol_types.hpp"
 

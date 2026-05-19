@@ -1,13 +1,18 @@
 #include <charconv>
 #include <csignal>
 #include <cstddef>
+#include <cstdint>
 #include <cstdio>
+#include <cstdlib>
+#include <exception>
 #include <memory>
 #include <optional>
 #include <print>
 #include <span>
 #include <string>
 #include <string_view>
+#include <system_error>
+#include <tuple>
 #include <variant>
 
 #include "capture_session.hpp"
@@ -20,6 +25,7 @@ namespace {
 
 /// Global pointer to the capture session for the signal handler.
 nab::CaptureSession *g_session{nullptr};
+
 // NOLINTEND(cppcoreguidelines-avoid-non-const-global-variables)
 
 void signal_handler(int /*signal*/) {
@@ -76,7 +82,8 @@ auto parse_args(const std::span<const char *const> args)
       std::uint16_t port_num{};
 
       const auto [_, ec] =
-          std::from_chars(port_arg.data(), port_arg.data() + port_arg.size(), port_num);
+          // NOLINTNEXTLINE(bugprone-suspicious-stringview-data-usage)
+          std::from_chars(port_arg.data(), std::to_address(port_arg.end()), port_num);
 
       if (ec != std::errc{}) {
         std::println(stderr, "Invalid port number: {}", port_arg);
@@ -114,13 +121,12 @@ auto parse_args(const std::span<const char *const> args)
   return std::make_unique<nab::CaptureSession>(nab::PacketFilter{protocol, port, host},
                                                output_file_name);
 }
+
 // NOLINTEND(readability-function-cognitive-complexity)
 
-} // namespace
-
-auto main(const int argc, const char *const argv[]) -> int {
+auto real_main(const std::span<const char *const> args) -> int {
   // Parse command line args into session config or exit
-  const auto arg_result = parse_args(std::span{argv, static_cast<std::size_t>(argc)});
+  const auto arg_result = parse_args(args);
   if (const int *const status_code{std::get_if<int>(&arg_result)}) { return *status_code; }
   const auto &session = std::get<std::unique_ptr<nab::CaptureSession>>(arg_result);
 
@@ -133,4 +139,21 @@ auto main(const int argc, const char *const argv[]) -> int {
 
   // Run the capture session
   return session->run();
+}
+
+} // namespace
+
+/// Wraps `real_main` to avoid exception escape.
+auto main(const int argc, const char *const argv[]) -> int {
+  try {
+    return real_main(std::span{argv, static_cast<std::size_t>(argc)});
+  } catch (const std::exception &e) {
+    std::ignore = std::fputs("fatal: ", stderr);
+    std::ignore = std::fputs(e.what(), stderr);
+    std::ignore = std::fputs("\n", stderr);
+    return EXIT_FAILURE;
+  } catch (...) {
+    std::ignore = std::fputs("fatal: unknown exception\n", stderr);
+    return EXIT_FAILURE;
+  }
 }

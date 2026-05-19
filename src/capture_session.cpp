@@ -1,10 +1,22 @@
 #include "capture_session.hpp"
 
+#include <atomic>
+#include <condition_variable>
+#include <cstdint>
 #include <cstdio>
+#include <memory>
+#include <mutex>
 #include <print>
+#include <span>
+#include <string>
+#include <string_view>
 
+#include <pcapplusplus/PcapFileDevice.h>
+#include <pcapplusplus/PcapLiveDevice.h>
 #include <pcapplusplus/PcapLiveDeviceList.h>
+#include <pcapplusplus/RawPacket.h>
 
+#include "packet_filter.hpp"
 #include "packet_parser.hpp"
 #include "protocol_types.hpp"
 
@@ -15,18 +27,20 @@ void print_packet(const pcpp::RawPacket *const raw_packet, const nab::ParsedPack
                   const int count) {
 
   const int len{raw_packet->getRawDataLen()};
+  const std::string_view src_ip{parsed.src_ip.value_or("<unknown source IP>")};
+  const std::string_view dst_ip{parsed.dst_ip.value_or("<unknown destination IP>")};
 
   // Print based on protocol
   if (parsed.protocol == nab::Protocol::TCP || parsed.protocol == nab::Protocol::UDP) {
     // TCP/UDP packets should have ports, but handle truncated packets gracefully
     if (!parsed.src_port.has_value() || !parsed.dst_port.has_value()) {
-      std::println("#{}: {} -> {} {} (truncated, no ports) {}B", count, parsed.src_ip.value(),
-                   parsed.dst_ip.value(), protocol_to_string(parsed.protocol), len);
+      std::println("#{}: {} -> {} {} (truncated, no ports) {}B", count, src_ip, dst_ip,
+                   protocol_to_string(parsed.protocol), len);
       return;
     }
 
-    std::print("#{}: {}:{} -> {}:{} ", count, parsed.src_ip.value(), parsed.src_port.value(),
-               parsed.dst_ip.value(), parsed.dst_port.value());
+    std::print("#{}: {}:{} -> {}:{} ", count, src_ip, parsed.src_port.value(), dst_ip,
+               parsed.dst_port.value());
 
     // Protocol name
     std::print("{}", protocol_to_string(parsed.protocol));
@@ -45,8 +59,8 @@ void print_packet(const pcpp::RawPacket *const raw_packet, const nab::ParsedPack
     std::println(" {}B", len);
   } else {
     // Non-TCP/UDP protocols (ICMP, etc.)
-    std::println("#{}: {} -> {} {} {}B", count, parsed.src_ip.value(), parsed.dst_ip.value(),
-                 protocol_to_string(parsed.protocol), len);
+    std::println("#{}: {} -> {} {} {}B", count, src_ip, dst_ip, protocol_to_string(parsed.protocol),
+                 len);
   }
 }
 

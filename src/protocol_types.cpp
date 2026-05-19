@@ -1,8 +1,11 @@
 #include "protocol_types.hpp"
 
 #include <cctype>
+#include <cstdint>
 #include <format>
 #include <ranges>
+#include <string>
+#include <string_view>
 
 namespace {
 

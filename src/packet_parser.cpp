@@ -3,8 +3,12 @@
 #include <cstddef>
 #include <cstdint>
 #include <format>
+#include <optional>
+#include <span>
+#include <string>
 #include <utility>
 
+#include "packet_filter.hpp"
 #include "protocol_types.hpp"
 
 namespace {

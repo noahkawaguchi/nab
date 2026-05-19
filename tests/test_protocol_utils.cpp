@@ -56,9 +56,9 @@ TEST_CASE("get_service_name returns well-known port names", "[service]") {
 }
 
 TEST_CASE("get_service_name returns empty for unknown ports", "[service]") {
-  CHECK(get_service_name(9999) == "");
-  CHECK(get_service_name(12345) == "");
-  CHECK(get_service_name(1) == "");
+  CHECK(get_service_name(9999).empty());
+  CHECK(get_service_name(12345).empty());
+  CHECK(get_service_name(1).empty());
 }
 
 TEST_CASE("ether_type_to_string converts EtherTypes correctly", "[ether_type]") {
