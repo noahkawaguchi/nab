@@ -14,7 +14,9 @@ words = [
     "nullopt",
     "pcapplusplus",
     "raii",
+    "stringview",
     "tcpdump",
     "udp",
+    "werror",
     "wireshark",
 ]
