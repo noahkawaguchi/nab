@@ -38,7 +38,7 @@ TEST_CASE("parse_ipv4_packet extracts source and destination IPs", "[ipv4]") {
   REQUIRE(parsed.has_value());
   CHECK(parsed->src_ip == "192.168.1.100");
   CHECK(parsed->dst_ip == "10.0.0.1");
-  CHECK(parsed->protocol == Protocol::TCP);
+  CHECK(parsed->protocol == Protocol::Tcp);
 }
 
 TEST_CASE("parse_ipv4_packet identifies different protocols", "[ipv4]") {
@@ -64,21 +64,21 @@ TEST_CASE("parse_ipv4_packet identifies different protocols", "[ipv4]") {
     packet[protocol_byte] = 6;
     const auto parsed = parse_ipv4_packet(std::span{packet});
     REQUIRE(parsed.has_value());
-    CHECK(parsed->protocol == Protocol::TCP);
+    CHECK(parsed->protocol == Protocol::Tcp);
   }
 
   SECTION("UDP protocol") {
     packet[protocol_byte] = 17;
     const auto parsed = parse_ipv4_packet(std::span{packet});
     REQUIRE(parsed.has_value());
-    CHECK(parsed->protocol == Protocol::UDP);
+    CHECK(parsed->protocol == Protocol::Udp);
   }
 
   SECTION("ICMP protocol") {
     packet[protocol_byte] = 1;
     const auto parsed = parse_ipv4_packet(std::span{packet});
     REQUIRE(parsed.has_value());
-    CHECK(parsed->protocol == Protocol::ICMP);
+    CHECK(parsed->protocol == Protocol::Icmp);
   }
 }
 
@@ -135,35 +135,35 @@ TEST_CASE("parse_ipv4_packet extracts TCP ports", "[ipv4][ports]") {
 TEST_CASE("parse_ipv4_packet extracts UDP ports", "[ipv4][ports]") {
   // clang-format off
   static constexpr std::array<std::uint8_t, 42> packet{
-      // Ethernet header (14 bytes)
-      0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-      0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-      0x08, 0x00,
+    // Ethernet header (14 bytes)
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x08, 0x00,
 
-      // IPv4 header (20 bytes)
-      0x45,                                // Version=4, IHL=5
-      0x00,                                // DSCP/ECN
-      0x00, 0x1C,                          // Total length: 28 bytes (20 IP + 8 UDP)
-      0x00, 0x00,                          // Identification
-      0x00, 0x00,                          // Flags + Fragment offset
-      0x40,                                // TTL: 64
-      0x11,                                // Protocol: 17 = UDP
-      0x00, 0x00,                          // Header checksum
-      192, 168, 1, 100,                    // Source IP
-      8, 8, 8, 8,                          // Dest IP (Google DNS)
+    // IPv4 header (20 bytes)
+    0x45,                                // Version=4, IHL=5
+    0x00,                                // DSCP/ECN
+    0x00, 0x1C,                          // Total length: 28 bytes (20 IP + 8 UDP)
+    0x00, 0x00,                          // Identification
+    0x00, 0x00,                          // Flags + Fragment offset
+    0x40,                                // TTL: 64
+    0x11,                                // Protocol: 17 = UDP
+    0x00, 0x00,                          // Header checksum
+    192, 168, 1, 100,                    // Source IP
+    8, 8, 8, 8,                          // Dest IP (Google DNS)
 
-      // UDP header (8 bytes)
-      0xC3, 0x5C,                          // Source port: 50012 (0xC35C)
-      0x00, 0x35,                          // Dest port: 53 (0x0035 = DNS)
-      0x00, 0x08,                          // Length: 8 bytes
-      0x00, 0x00,                          // Checksum
+    // UDP header (8 bytes)
+    0xC3, 0x5C,                          // Source port: 50012 (0xC35C)
+    0x00, 0x35,                          // Dest port: 53 (0x0035 = DNS)
+    0x00, 0x08,                          // Length: 8 bytes
+    0x00, 0x00,                          // Checksum
   };
   // clang-format on
 
   const auto parsed = parse_ipv4_packet(std::span{packet});
 
   REQUIRE(parsed.has_value());
-  CHECK(parsed->protocol == Protocol::UDP);
+  CHECK(parsed->protocol == Protocol::Udp);
   REQUIRE(parsed->src_port.has_value());
   CHECK(parsed->src_port.value() == 50012);
   REQUIRE(parsed->dst_port.has_value());
@@ -173,36 +173,36 @@ TEST_CASE("parse_ipv4_packet extracts UDP ports", "[ipv4][ports]") {
 TEST_CASE("parse_ipv4_packet handles missing ports for ICMP", "[ipv4][ports]") {
   // clang-format off
   static constexpr std::array<std::uint8_t, 42> packet{
-      // Ethernet header (14 bytes)
-      0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-      0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-      0x08, 0x00,
+    // Ethernet header (14 bytes)
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x08, 0x00,
 
-      // IPv4 header (20 bytes)
-      0x45,                                // Version=4, IHL=5
-      0x00,                                // DSCP/ECN
-      0x00, 0x1C,                          // Total length: 28 bytes
-      0x00, 0x00,                          // Identification
-      0x00, 0x00,                          // Flags + Fragment offset
-      0x40,                                // TTL: 64
-      0x01,                                // Protocol: 1 = ICMP
-      0x00, 0x00,                          // Header checksum
-      192, 168, 1, 1,                      // Source IP
-      192, 168, 1, 100,                    // Dest IP
+    // IPv4 header (20 bytes)
+    0x45,                                // Version=4, IHL=5
+    0x00,                                // DSCP/ECN
+    0x00, 0x1C,                          // Total length: 28 bytes
+    0x00, 0x00,                          // Identification
+    0x00, 0x00,                          // Flags + Fragment offset
+    0x40,                                // TTL: 64
+    0x01,                                // Protocol: 1 = ICMP
+    0x00, 0x00,                          // Header checksum
+    192, 168, 1, 1,                      // Source IP
+    192, 168, 1, 100,                    // Dest IP
 
-      // ICMP Echo Request (8 bytes)
-      0x08,                                // Type: 8 = Echo Request
-      0x00,                                // Code: 0
-      0x00, 0x00,                          // Checksum
-      0x12, 0x34,                          // Identifier
-      0x00, 0x01,                          // Sequence number
+    // ICMP Echo Request (8 bytes)
+    0x08,                                // Type: 8 = Echo Request
+    0x00,                                // Code: 0
+    0x00, 0x00,                          // Checksum
+    0x12, 0x34,                          // Identifier
+    0x00, 0x01,                          // Sequence number
   };
   // clang-format on
 
   const auto parsed = parse_ipv4_packet(std::span{packet});
   // Should have still parsed the packet even without ports
   REQUIRE(parsed.has_value());
-  CHECK(parsed->protocol == Protocol::ICMP);
+  CHECK(parsed->protocol == Protocol::Icmp);
   // ICMP packets don't have ports
   CHECK_FALSE(parsed->src_port.has_value());
   CHECK_FALSE(parsed->dst_port.has_value());
@@ -241,7 +241,7 @@ TEST_CASE("parse_ipv4_packet handles truncated TCP header", "[ipv4][ports][trunc
 
   // Should successfully parse IPv4 info but not ports (truncated transport header)
   REQUIRE(parsed.has_value());
-  CHECK(parsed->protocol == Protocol::TCP);
+  CHECK(parsed->protocol == Protocol::Tcp);
   CHECK(parsed->src_ip == "192.168.1.1");
   CHECK(parsed->dst_ip == "10.0.0.1");
 

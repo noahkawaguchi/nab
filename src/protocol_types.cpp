@@ -26,23 +26,22 @@ namespace nab {
 
 auto protocol_to_string(const Protocol protocol) -> std::string_view {
   switch (protocol) {
-  case Protocol::TCP: return "TCP";
-  case Protocol::UDP: return "UDP";
-  case Protocol::ICMP: return "ICMP";
-  case Protocol::IGMP: return "IGMP";
+  case Protocol::Tcp:     return "TCP";
+  case Protocol::Udp:     return "UDP";
+  case Protocol::Icmp:    return "ICMP";
+  case Protocol::Igmp:    return "IGMP";
   case Protocol::Unknown: return "Unknown";
-  // Should be impossible to reach here
-  default: return "Unexpected";
+  default:                return "Unexpected"; // Should be impossible to reach the default
   }
 }
 
 auto parse_protocol(const std::uint8_t protocol_num) -> Protocol {
   switch (protocol_num) {
-  case 1: return Protocol::ICMP;
-  case 2: return Protocol::IGMP;
+  case 1: return Protocol::Icmp;
+  case 2: return Protocol::Igmp;
   // NOLINTBEGIN(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
-  case 6: return Protocol::TCP;
-  case 17: return Protocol::UDP;
+  case 6:  return Protocol::Tcp;
+  case 17: return Protocol::Udp;
   // NOLINTEND(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
   default: return Protocol::Unknown;
   }
@@ -51,20 +50,22 @@ auto parse_protocol(const std::uint8_t protocol_num) -> Protocol {
 auto parse_protocol(const std::string_view protocol_str) -> Protocol {
   const std::string normalized{normalize_str(protocol_str)};
 
-  if (normalized == "tcp") { return Protocol::TCP; }
-  if (normalized == "udp") { return Protocol::UDP; }
-  if (normalized == "icmp") { return Protocol::ICMP; }
-  if (normalized == "igmp") { return Protocol::IGMP; }
+  if (normalized == "tcp") { return Protocol::Tcp; }
+  if (normalized == "udp") { return Protocol::Udp; }
+  if (normalized == "icmp") { return Protocol::Icmp; }
+  if (normalized == "igmp") { return Protocol::Igmp; }
 
   return Protocol::Unknown;
 }
 
 auto ether_type_to_string(const EtherType ether_type) -> std::string {
   switch (ether_type) {
-  case EtherType::IPv4: return "IPv4";
-  case EtherType::ARP: return "ARP";
-  case EtherType::IPv6: return "IPv6";
-  default: return std::format("EtherType-0x{:04x}", static_cast<std::uint16_t>(ether_type));
+  case EtherType::Ipv4: return "IPv4";
+  case EtherType::Arp:  return "ARP";
+  case EtherType::Ipv6: return "IPv6";
+  default:
+    const auto raw = static_cast<std::uint16_t>(ether_type);
+    return std::format("EtherType-0x{:04x}", raw);
   }
 }
 

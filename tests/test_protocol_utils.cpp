@@ -6,38 +6,38 @@
 using namespace nab;
 
 TEST_CASE("protocol_to_string converts protocols correctly", "[protocol]") {
-  CHECK(protocol_to_string(Protocol::TCP) == "TCP");
-  CHECK(protocol_to_string(Protocol::UDP) == "UDP");
-  CHECK(protocol_to_string(Protocol::ICMP) == "ICMP");
-  CHECK(protocol_to_string(Protocol::IGMP) == "IGMP");
+  CHECK(protocol_to_string(Protocol::Tcp) == "TCP");
+  CHECK(protocol_to_string(Protocol::Udp) == "UDP");
+  CHECK(protocol_to_string(Protocol::Icmp) == "ICMP");
+  CHECK(protocol_to_string(Protocol::Igmp) == "IGMP");
   CHECK(protocol_to_string(Protocol::Unknown) == "Unknown");
 }
 
 TEST_CASE("parse_protocol from string (case insensitive)", "[protocol]") {
   SECTION("Lowercase") {
-    CHECK(parse_protocol("tcp") == Protocol::TCP);
-    CHECK(parse_protocol("udp") == Protocol::UDP);
-    CHECK(parse_protocol("icmp") == Protocol::ICMP);
-    CHECK(parse_protocol("igmp") == Protocol::IGMP);
+    CHECK(parse_protocol("tcp") == Protocol::Tcp);
+    CHECK(parse_protocol("udp") == Protocol::Udp);
+    CHECK(parse_protocol("icmp") == Protocol::Icmp);
+    CHECK(parse_protocol("igmp") == Protocol::Igmp);
   }
 
   SECTION("Uppercase") {
-    CHECK(parse_protocol("TCP") == Protocol::TCP);
-    CHECK(parse_protocol("UDP") == Protocol::UDP);
-    CHECK(parse_protocol("ICMP") == Protocol::ICMP);
-    CHECK(parse_protocol("IGMP") == Protocol::IGMP);
+    CHECK(parse_protocol("TCP") == Protocol::Tcp);
+    CHECK(parse_protocol("UDP") == Protocol::Udp);
+    CHECK(parse_protocol("ICMP") == Protocol::Icmp);
+    CHECK(parse_protocol("IGMP") == Protocol::Igmp);
   }
 
   SECTION("Mixed case") {
-    CHECK(parse_protocol("TcP") == Protocol::TCP);
-    CHECK(parse_protocol("Udp") == Protocol::UDP);
-    CHECK(parse_protocol("IcMp") == Protocol::ICMP);
+    CHECK(parse_protocol("TcP") == Protocol::Tcp);
+    CHECK(parse_protocol("Udp") == Protocol::Udp);
+    CHECK(parse_protocol("IcMp") == Protocol::Icmp);
   }
 
   SECTION("With whitespace") {
-    CHECK(parse_protocol("  tcp  ") == Protocol::TCP);
-    CHECK(parse_protocol("\tudp\n") == Protocol::UDP);
-    CHECK(parse_protocol(" ICMP ") == Protocol::ICMP);
+    CHECK(parse_protocol("  tcp  ") == Protocol::Tcp);
+    CHECK(parse_protocol("\tudp\n") == Protocol::Udp);
+    CHECK(parse_protocol(" ICMP ") == Protocol::Icmp);
   }
 
   SECTION("Invalid protocols") {
@@ -62,7 +62,7 @@ TEST_CASE("get_service_name returns empty for unknown ports", "[service]") {
 }
 
 TEST_CASE("ether_type_to_string converts EtherTypes correctly", "[ether_type]") {
-  CHECK(ether_type_to_string(EtherType::IPv4) == "IPv4");
-  CHECK(ether_type_to_string(EtherType::ARP) == "ARP");
-  CHECK(ether_type_to_string(EtherType::IPv6) == "IPv6");
+  CHECK(ether_type_to_string(EtherType::Ipv4) == "IPv4");
+  CHECK(ether_type_to_string(EtherType::Arp) == "ARP");
+  CHECK(ether_type_to_string(EtherType::Ipv6) == "IPv6");
 }

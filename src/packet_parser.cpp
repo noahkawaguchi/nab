@@ -20,10 +20,10 @@ constexpr std::size_t TCP_MIN_BYTES{20};
 constexpr std::size_t UDP_BYTES{8};
 
 enum class PortNumber : std::uint16_t {
-  SSH = 22,
-  DNS = 53,
-  HTTP = 80,
-  HTTPS = 443,
+  Ssh   = 22,
+  Dns   = 53,
+  Http  = 80,
+  Https = 443,
 };
 
 } // namespace
@@ -66,7 +66,7 @@ auto parse_ipv4_packet(const std::span<const std::uint8_t> packet) -> std::optio
   parsed.dst_ip = format_ip_addr(ip_header.subspan<16, 4>());
 
   // Parse TCP/UDP for ports (if enough data is present)
-  if (parsed.protocol == Protocol::TCP || parsed.protocol == Protocol::UDP) {
+  if (parsed.protocol == Protocol::Tcp || parsed.protocol == Protocol::Udp) {
     // Calculate IP header length (20-60 bytes). IHL is 5-15 32-bit words, so convert to bytes.
     const auto ip_header_len = static_cast<std::size_t>(internet_header_len * 4);
 
@@ -75,7 +75,7 @@ auto parse_ipv4_packet(const std::span<const std::uint8_t> packet) -> std::optio
 
     // Minimum transport header size depends on TCP vs. UDP
     const auto min_transport_len =
-        static_cast<std::size_t>((parsed.protocol == Protocol::TCP) ? TCP_MIN_BYTES : UDP_BYTES);
+      static_cast<std::size_t>((parsed.protocol == Protocol::Tcp) ? TCP_MIN_BYTES : UDP_BYTES);
 
     // Only parse transport header if there is enough data (leave ports as nullopt if truncated)
     if (packet.size() >= transport_offset + min_transport_len) {
@@ -98,7 +98,7 @@ auto parse_ipv4_packet(const std::span<const std::uint8_t> packet) -> std::optio
 }
 
 auto is_ssh_packet(const ParsedPacket &packet) -> bool {
-  constexpr auto ssh = std::to_underlying(PortNumber::SSH);
+  constexpr auto ssh = std::to_underlying(PortNumber::Ssh);
 
   // Both ports should be present to be classified as SSH traffic
   return (packet.src_port && packet.dst_port)
@@ -107,11 +107,11 @@ auto is_ssh_packet(const ParsedPacket &packet) -> bool {
 
 auto get_service_name(const std::uint16_t port) -> std::string_view {
   switch (static_cast<PortNumber>(port)) {
-  case PortNumber::HTTP: return "/HTTP";
-  case PortNumber::HTTPS: return "/HTTPS";
-  case PortNumber::DNS: return "/DNS";
-  case PortNumber::SSH: return "/SSH";
-  default: return "";
+  case PortNumber::Http:  return "/HTTP";
+  case PortNumber::Https: return "/HTTPS";
+  case PortNumber::Dns:   return "/DNS";
+  case PortNumber::Ssh:   return "/SSH";
+  default:                return "";
   }
 }
 

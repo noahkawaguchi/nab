@@ -31,7 +31,7 @@ void print_packet(const pcpp::RawPacket *const raw_packet, const nab::ParsedPack
   const std::string_view dst_ip{parsed.dst_ip.value_or("<unknown destination IP>")};
 
   // Print based on protocol
-  if (parsed.protocol == nab::Protocol::TCP || parsed.protocol == nab::Protocol::UDP) {
+  if (parsed.protocol == nab::Protocol::Tcp || parsed.protocol == nab::Protocol::Udp) {
     // TCP/UDP packets should have ports, but handle truncated packets gracefully
     if (!parsed.src_port.has_value() || !parsed.dst_port.has_value()) {
       std::println("#{}: {} -> {} {} (truncated, no ports) {}B", count, src_ip, dst_ip,
@@ -171,7 +171,7 @@ void CaptureSession::handle_packet(const pcpp::RawPacket *const raw_packet) {
   const auto &ether_type = *maybe_ether_type;
 
   // Handle IPv4 packets
-  if (ether_type == EtherType::IPv4) {
+  if (ether_type == EtherType::Ipv4) {
     const auto maybe_parsed = parse_ipv4_packet(packet);
     if (!maybe_parsed) {
       std::println("#{}: IPv4 (truncated, {}B)", count, len);

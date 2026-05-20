@@ -9,29 +9,29 @@ using namespace nab;
 
 TEST_CASE("PacketFilter matches protocol correctly", "[filter]") {
   static constexpr ParsedPacket tcp_packet{
-      .protocol = Protocol::TCP,
-      .src_port = 12345,
-      .dst_port = 80,
-      .src_ip = "192.168.1.1",
-      .dst_ip = "192.168.1.2",
+    .protocol = Protocol::Tcp,
+    .src_port = 12345,
+    .dst_port = 80,
+    .src_ip   = "192.168.1.1",
+    .dst_ip   = "192.168.1.2",
   };
 
   SECTION("Filter matches TCP") {
-    CHECK(PacketFilter{Protocol::TCP, std::nullopt, std::nullopt}.matches(tcp_packet));
+    CHECK(PacketFilter{Protocol::Tcp, std::nullopt, std::nullopt}.matches(tcp_packet));
   }
 
   SECTION("Filter rejects non-TCP") {
-    CHECK_FALSE(PacketFilter{Protocol::UDP, std::nullopt, std::nullopt}.matches(tcp_packet));
+    CHECK_FALSE(PacketFilter{Protocol::Udp, std::nullopt, std::nullopt}.matches(tcp_packet));
   }
 }
 
 TEST_CASE("PacketFilter matches port correctly", "[filter]") {
   static constexpr ParsedPacket packet{
-      .protocol = Protocol::TCP,
-      .src_port = 12345,
-      .dst_port = 80,
-      .src_ip = "192.168.1.1",
-      .dst_ip = "192.168.1.2",
+    .protocol = Protocol::Tcp,
+    .src_port = 12345,
+    .dst_port = 80,
+    .src_ip   = "192.168.1.1",
+    .dst_ip   = "192.168.1.2",
   };
 
   SECTION("Matches destination port") {
@@ -49,9 +49,9 @@ TEST_CASE("PacketFilter matches port correctly", "[filter]") {
 
 TEST_CASE("PacketFilter matches host IP correctly", "[filter]") {
   static constexpr ParsedPacket packet{
-      .protocol = Protocol::TCP,
-      .src_ip = "192.168.1.100",
-      .dst_ip = "10.0.0.1",
+    .protocol = Protocol::Tcp,
+    .src_ip   = "192.168.1.100",
+    .dst_ip   = "10.0.0.1",
   };
 
   SECTION("Matches source IP") {
@@ -69,26 +69,26 @@ TEST_CASE("PacketFilter matches host IP correctly", "[filter]") {
 
 TEST_CASE("PacketFilter combines multiple criteria", "[filter]") {
   static constexpr ParsedPacket packet{
-      .protocol = Protocol::TCP,
-      .src_port = 54321,
-      .dst_port = 443,
-      .src_ip = "192.168.1.100",
-      .dst_ip = "10.0.0.1",
+    .protocol = Protocol::Tcp,
+    .src_port = 54321,
+    .dst_port = 443,
+    .src_ip   = "192.168.1.100",
+    .dst_ip   = "10.0.0.1",
   };
 
   SECTION("Matches when all criteria match") {
-    CHECK(PacketFilter{Protocol::TCP, 443, "10.0.0.1"}.matches(packet));
+    CHECK(PacketFilter{Protocol::Tcp, 443, "10.0.0.1"}.matches(packet));
   }
 
   SECTION("Rejects when protocol doesn't match") {
-    CHECK_FALSE(PacketFilter{Protocol::UDP, 443, "10.0.0.1"}.matches(packet));
+    CHECK_FALSE(PacketFilter{Protocol::Udp, 443, "10.0.0.1"}.matches(packet));
   }
 
   SECTION("Rejects when port doesn't match") {
-    CHECK_FALSE(PacketFilter{Protocol::TCP, 80, "10.0.0.1"}.matches(packet));
+    CHECK_FALSE(PacketFilter{Protocol::Tcp, 80, "10.0.0.1"}.matches(packet));
   }
 
   SECTION("Rejects when host doesn't match") {
-    CHECK_FALSE(PacketFilter{Protocol::TCP, 443, "8.8.8.8"}.matches(packet));
+    CHECK_FALSE(PacketFilter{Protocol::Tcp, 443, "8.8.8.8"}.matches(packet));
   }
 }
