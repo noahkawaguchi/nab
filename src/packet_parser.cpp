@@ -86,9 +86,9 @@ auto parse_ipv4_packet(const std::span<const std::uint8_t> packet) -> std::optio
       // Bytes 0-1: source port (big-endian)
       // Bytes 2-3: destination port (big-endian)
       parsed.src_port =
-          static_cast<std::uint16_t>((transport_header[0] << 8) | transport_header[1]);
+        static_cast<std::uint16_t>((transport_header[0] << 8) | transport_header[1]);
       parsed.dst_port =
-          static_cast<std::uint16_t>((transport_header[2] << 8) | transport_header[3]);
+        static_cast<std::uint16_t>((transport_header[2] << 8) | transport_header[3]);
 
       // NOLINTEND(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
     }
@@ -102,7 +102,7 @@ auto is_ssh_packet(const ParsedPacket &packet) -> bool {
 
   // Both ports should be present to be classified as SSH traffic
   return (packet.src_port && packet.dst_port)
-         && (*packet.src_port == ssh || *packet.dst_port == ssh);
+    && (*packet.src_port == ssh || *packet.dst_port == ssh);
 }
 
 auto get_service_name(const std::uint16_t port) -> std::string_view {

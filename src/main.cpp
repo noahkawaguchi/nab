@@ -37,11 +37,12 @@ void signal_handler(int /*signal*/) {
 /// Parses command line arguments to configure a `CaptureSession`, or returns a status code to exit
 /// early without executing the session.
 auto parse_args(const std::span<const char *const> args)
-    -> std::variant<std::unique_ptr<nab::CaptureSession>, int> {
-  std::string output_file_name{};
+  -> std::variant<std::unique_ptr<nab::CaptureSession>, int> {
+
+  std::string                  output_file_name{};
   std::optional<nab::Protocol> protocol{};
   std::optional<std::uint16_t> port{};
-  std::optional<std::string> host{};
+  std::optional<std::string>   host{};
 
   for (std::size_t i{1}, args_len{args.size()}; i < args_len; i++) {
     const std::string_view arg{args[i]};
@@ -79,11 +80,11 @@ auto parse_args(const std::span<const char *const> args)
 
       // Attempt to parse the following arg as a port number
       const std::string_view port_arg{args[++i]};
-      std::uint16_t port_num{};
+      std::uint16_t          port_num{};
 
       const auto [_, ec] =
-          // NOLINTNEXTLINE(bugprone-suspicious-stringview-data-usage)
-          std::from_chars(port_arg.data(), std::to_address(port_arg.end()), port_num);
+        // NOLINTNEXTLINE(bugprone-suspicious-stringview-data-usage)
+        std::from_chars(port_arg.data(), std::to_address(port_arg.end()), port_num);
 
       if (ec != std::errc{}) {
         std::println(stderr, "Invalid port number: {}", port_arg);

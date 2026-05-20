@@ -26,7 +26,7 @@ namespace {
 void print_packet(const pcpp::RawPacket *const raw_packet, const nab::ParsedPacket &parsed,
                   const int count) {
 
-  const int len{raw_packet->getRawDataLen()};
+  const int              len{raw_packet->getRawDataLen()};
   const std::string_view src_ip{parsed.src_ip.value_or("<unknown source IP>")};
   const std::string_view dst_ip{parsed.dst_ip.value_or("<unknown destination IP>")};
 
@@ -74,7 +74,7 @@ auto CaptureSession::run() -> int {
   // Set up pcap file writer if output file is specified
   if (!output_file_name_.empty()) {
     writer_ =
-        std::make_unique<pcpp::PcapFileWriterDevice>(output_file_name_, pcpp::LINKTYPE_ETHERNET);
+      std::make_unique<pcpp::PcapFileWriterDevice>(output_file_name_, pcpp::LINKTYPE_ETHERNET);
 
     if (!writer_->open()) {
       std::println(stderr, "Failed to open output file: {}", output_file_name_);
@@ -155,12 +155,9 @@ void CaptureSession::packet_callback(const pcpp::RawPacket *const raw_packet,
 }
 
 void CaptureSession::handle_packet(const pcpp::RawPacket *const raw_packet) {
-  // Create a span view of the raw packet data
-  const std::uint8_t *const data{raw_packet->getRawData()};
-  const auto len = static_cast<std::size_t>(raw_packet->getRawDataLen());
-  const std::span<const std::uint8_t> packet{data, len};
-
-  const int count{++packet_count_};
+  const auto                          len = static_cast<std::size_t>(raw_packet->getRawDataLen());
+  const std::span<const std::uint8_t> packet{raw_packet->getRawData(), len};
+  const int                           count{++packet_count_};
 
   // Parse Ethernet header
   const auto maybe_ether_type = parse_ethernet_header(packet);

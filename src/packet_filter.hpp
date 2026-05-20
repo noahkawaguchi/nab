@@ -11,11 +11,11 @@ namespace nab {
 
 /// Parsed packet information needed for filtering.
 struct ParsedPacket {
-  Protocol protocol{Protocol::Unknown};
+  Protocol                     protocol{Protocol::Unknown};
   std::optional<std::uint16_t> src_port;
   std::optional<std::uint16_t> dst_port;
-  std::optional<std::string> src_ip;
-  std::optional<std::string> dst_ip;
+  std::optional<std::string>   src_ip;
+  std::optional<std::string>   dst_ip;
 };
 
 /// Filter criteria for packet capture.
@@ -38,9 +38,9 @@ public:
   [[nodiscard]] auto description() const -> std::string;
 
 private:
-  std::optional<Protocol> protocol_;
+  std::optional<Protocol>      protocol_;
   std::optional<std::uint16_t> port_;
-  std::optional<std::string> host_;
+  std::optional<std::string>   host_;
 };
 
 } // namespace nab
