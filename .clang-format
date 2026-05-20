@@ -1,3 +1,8 @@
+AlignConsecutiveAssignments: Consecutive
+AlignConsecutiveDeclarations: Consecutive
+AlignConsecutiveMacros: Consecutive
+AlignConsecutiveShortCaseStatements: { Enabled: true }
+AlignOperands: false
 AllowShortBlocksOnASingleLine: Always
 AllowShortCaseLabelsOnASingleLine: true
 AllowShortFunctionsOnASingleLine: All
@@ -5,5 +10,7 @@ AllowShortIfStatementsOnASingleLine: AllIfsAndElse
 AllowShortLoopsOnASingleLine: true
 BreakBeforeBinaryOperators: NonAssignment
 ColumnLimit: 100
+ContinuationIndentWidth: 2
 IndentWidth: 2
 InsertNewlineAtEOF: true
+LambdaBodyIndentation: OuterScope
