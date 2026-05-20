@@ -4,6 +4,7 @@
 #include <optional>
 #include <span>
 #include <string>
+#include <string_view>
 
 #include "packet_filter.hpp"
 #include "protocol_types.hpp"
@@ -24,6 +25,6 @@ auto parse_ipv4_packet(std::span<const std::uint8_t> packet) -> std::optional<Pa
 auto is_ssh_packet(const ParsedPacket &packet) -> bool;
 
 /// Gets service name for well-known ports.
-auto get_service_name(std::uint16_t port) -> std::string;
+auto get_service_name(std::uint16_t port) -> std::string_view;
 
 } // namespace nab

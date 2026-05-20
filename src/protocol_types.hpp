@@ -8,22 +8,22 @@ namespace nab {
 
 /// Ethernet frame types (EtherType field).
 enum class EtherType : std::uint16_t {
-  IPv4 = 0x0800,
-  ARP = 0x0806,
-  IPv6 = 0x86DD,
+  Ipv4 = 0x0800,
+  Arp  = 0x0806,
+  Ipv6 = 0x86DD,
 };
 
 /// IP protocol numbers.
 enum class Protocol : std::uint8_t {
-  ICMP = 1,
-  IGMP = 2,
-  TCP = 6,
-  UDP = 17,
+  Icmp    = 1,
+  Igmp    = 2,
+  Tcp     = 6,
+  Udp     = 17,
   Unknown = 255,
 };
 
-/// Converts `Protocol` enum to string for display.
-auto protocol_to_string(Protocol protocol) -> std::string;
+/// Converts `Protocol` enum to string view for display.
+auto protocol_to_string(Protocol protocol) -> std::string_view;
 
 /// Parses protocol number to `Protocol` enum.
 auto parse_protocol(std::uint8_t protocol_num) -> Protocol;

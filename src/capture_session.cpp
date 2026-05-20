@@ -46,8 +46,8 @@ void print_packet(const pcpp::RawPacket *const raw_packet, const nab::ParsedPack
     std::print("{}", protocol_to_string(parsed.protocol));
 
     // Add service name if it's a well-known port
-    const std::string src_service{nab::get_service_name(parsed.src_port.value())};
-    const std::string dst_service{nab::get_service_name(parsed.dst_port.value())};
+    const std::string_view src_service{nab::get_service_name(parsed.src_port.value())};
+    const std::string_view dst_service{nab::get_service_name(parsed.dst_port.value())};
 
     // Show service name (prefer destination port for typical client->server traffic)
     if (!dst_service.empty()) {

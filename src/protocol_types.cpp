@@ -24,7 +24,7 @@ auto normalize_str(const std::string_view sv) -> std::string {
 
 namespace nab {
 
-auto protocol_to_string(const Protocol protocol) -> std::string {
+auto protocol_to_string(const Protocol protocol) -> std::string_view {
   switch (protocol) {
   case Protocol::TCP: return "TCP";
   case Protocol::UDP: return "UDP";

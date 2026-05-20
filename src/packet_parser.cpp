@@ -6,6 +6,7 @@
 #include <optional>
 #include <span>
 #include <string>
+#include <string_view>
 #include <utility>
 
 #include "packet_filter.hpp"
@@ -104,7 +105,7 @@ auto is_ssh_packet(const ParsedPacket &packet) -> bool {
          && (*packet.src_port == ssh || *packet.dst_port == ssh);
 }
 
-auto get_service_name(const std::uint16_t port) -> std::string {
+auto get_service_name(const std::uint16_t port) -> std::string_view {
   switch (static_cast<PortNumber>(port)) {
   case PortNumber::HTTP: return "/HTTP";
   case PortNumber::HTTPS: return "/HTTPS";
