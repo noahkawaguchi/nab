@@ -128,7 +128,7 @@ auto parse_args(const std::span<const char *const> args)
 auto real_main(const std::span<const char *const> args) -> int {
   // Parse command line args into session config or exit
   const auto arg_result = parse_args(args);
-  if (const int *const status_code{std::get_if<int>(&arg_result)}) { return *status_code; }
+  if (const auto *const status_code = std::get_if<int>(&arg_result)) { return *status_code; }
   const auto &session = std::get<std::unique_ptr<nab::CaptureSession>>(arg_result);
 
   // Set up signal handler for Ctrl+C
