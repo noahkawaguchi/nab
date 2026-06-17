@@ -2,6 +2,11 @@
 build:
     cmake --build build
 
+# Grant the binary the necessary capabilities
+[linux]
+caps: build
+    setcap cap_net_raw,cap_net_admin+ep ./build/nab
+
 # Build and run the main executable
 run *ARGS: build
     ./build/nab {{ARGS}}
