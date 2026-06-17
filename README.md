@@ -29,19 +29,19 @@ Built as a learning project to gain experience with networking concepts and mode
 
 ```bash
 # Capture all traffic
-sudo ./nab
+./nab
 
 # Capture only TCP traffic
-sudo ./nab --protocol tcp
+./nab --protocol tcp
 
 # Capture only DNS traffic
-sudo ./nab --port 53
+./nab --port 53
 
 # Capture traffic to/from a specific host
-sudo ./nab --host 192.168.1.100
+./nab --host 192.168.1.100
 
 # Capture HTTPS traffic and save to file
-sudo ./nab --port 443 -o https_traffic.pcap
+./nab --port 443 -o https_traffic.pcap
 ```
 
 ### Sample output:
@@ -100,9 +100,9 @@ Packets written to: example.pcap
 - C++23 compiler such as GCC 14+ or Clang 18+ (tested with GCC 14 and 15)
 - CMake 3.25+
 - Conan 2.x
-- [just](https://github.com/casey/just) command runner (optional)
+- [Just](https://github.com/casey/just) command runner (optional)
 - System packet capture library such as `libpcap`
-- `sudo` privileges to capture network packets
+- `sudo` privileges to capture network packets (if using Linux, specifically CAP_NET_RAW and CAP_NET_ADMIN)
 
 ### Build Steps
 
@@ -111,8 +111,11 @@ Using `just`:
 ```bash
 just rebuild
 just test
-sudo just run
-# Or to pass args: sudo just run [args]
+sudo just run # Or to pass args: sudo just run [args]
+
+# Or to grant granular capabilities rather than running as root (Linux only)
+sudo just caps
+just run # [args]
 ```
 
 Or running the commands manually:
@@ -129,7 +132,11 @@ cmake --build build
 ctest --test-dir build --output-on-failure
 
 # Run the program
-sudo ./build/nab
+sudo ./build/nab # Or to pass args: sudo ./build/nab [args]
+
+# Or to grant granular capabilities rather than running as root (Linux only)
+sudo setcap cap_net_raw,cap_net_admin+ep ./build/nab
+./build/nab # [args]
 ```
 
 ## Technical Highlights

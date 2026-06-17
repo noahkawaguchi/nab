@@ -29,19 +29,19 @@ C++23で実装した軽量なネットワークパケットキャプチャ・解
 
 ```bash
 # 全トラフィックをキャプチャ
-sudo ./nab
+./nab
 
 # TCPトラフィックのみをキャプチャ
-sudo ./nab --protocol tcp
+./nab --protocol tcp
 
 # DNSトラフィックのみをキャプチャ
-sudo ./nab --port 53
+./nab --port 53
 
 # 特定ホストのトラフィックをキャプチャ
-sudo ./nab --host 192.168.1.100
+./nab --host 192.168.1.100
 
 # HTTPSトラフィックをキャプチャしてファイルに保存
-sudo ./nab --port 443 -o https_traffic.pcap
+./nab --port 443 -o https_traffic.pcap
 ```
 
 ### 出力例：
@@ -100,9 +100,9 @@ Packets written to: example.pcap
 - GCC 14以上・Clang 18以上などのC++23対応コンパイラ（GCC 14・15で動作確認済み）
 - CMake 3.25以上
 - Conan 2.x
-- コマンドランナーの[just](https://github.com/casey/just)（任意）
+- コマンドランナーの[Just](https://github.com/casey/just)（任意）
 - `libpcap` などのシステムパケットキャプチャライブラリ
-- パケットキャプチャにはroot権限（`sudo`）が必要
+- パケットキャプチャにはroot権限（`sudo`）が必要（Linuxの場合はCAP_NET_RAWとCAP_NET_ADMIN）
 
 ### ビルド手順
 
@@ -111,8 +111,11 @@ Packets written to: example.pcap
 ```bash
 just rebuild
 just test
-sudo just run
-# 引数を渡す場合：sudo just run [引数]
+sudo just run # 引数を渡す場合：sudo just run [引数]
+
+# root権限の代わりに必要最小限の権限を付与する場合（Linux限定）
+sudo just caps
+just run # [引数]
 ```
 
 手動でコマンドを実行する場合：
@@ -129,7 +132,11 @@ cmake --build build
 ctest --test-dir build --output-on-failure
 
 # プログラムの実行
-sudo ./build/nab
+sudo ./build/nab # 引数を渡す場合：sudo ./build/nab [引数]
+
+# root権限の代わりに必要最小限の権限を付与する場合（Linux限定）
+sudo setcap cap_net_raw,cap_net_admin+ep ./build/nab
+./build/nab # [引数]
 ```
 
 ## 技術的なポイント
