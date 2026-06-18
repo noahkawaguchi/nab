@@ -26,7 +26,7 @@ lint: build
 
 # Check formatting with Clang-Format
 fmt-check:
-    git ls-files '*.cpp' '*.hpp' | xargs clang-format --dry-run --Werror \
+    git ls-files -z '*.cpp' '*.hpp' | xargs -0 clang-format --dry-run --Werror \
         && echo 'Formatting check passed'
 
 # Remove build artifacts
