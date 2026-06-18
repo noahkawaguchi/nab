@@ -9,7 +9,7 @@ caps: build
 
 # Build and run the main executable
 run *ARGS: build
-    ./build/nab {{ARGS}}
+    ./build/nab {{ ARGS }}
 
 # Full clean rebuild
 rebuild: clean && build
