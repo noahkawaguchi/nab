@@ -22,7 +22,8 @@ test: build
 
 # Lint with Clang-Tidy
 lint: build
-    run-clang-tidy -p build -quiet -use-color -warnings-as-errors '*'
+    clang-tidy -p build --quiet --use-color --warnings-as-errors='*' \
+        $(jq -r '.[].file' build/compile_commands.json | sort -u)
 
 # Check formatting with Clang-Format
 fmt-check:
