@@ -6,14 +6,18 @@ words = [
     "ctest",
     "cxx",
     "dcmake",
+    "direnv",
     "dscp",
     "hicpp",
     "igmp",
     "ihl",
     "ipv",
     "libpcap",
+    "nixos",
+    "nixpkgs",
     "nullopt",
     "pcapplusplus",
+    "pkgs",
     "raii",
     "setcap",
     "stringview",
@@ -22,3 +26,4 @@ words = [
     "werror",
     "wireshark",
 ]
+ignore_paths = ["flake.lock"]
