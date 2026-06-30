@@ -2,3 +2,4 @@ build/
 .cache/
 .direnv/
 CMakeUserPresets.json
+*.pcap
