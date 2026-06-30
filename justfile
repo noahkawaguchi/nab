@@ -30,6 +30,10 @@ fmt-check:
     git ls-files -z '*.cpp' '*.hpp' | xargs -0 clang-format --dry-run --Werror \
         && echo 'Formatting check passed'
 
+# Open a PCAP file in Termshark
+inspect pcap:
+    termshark -r {{ pcap }}
+
 # Remove build artifacts
 clean:
     rm -rf build

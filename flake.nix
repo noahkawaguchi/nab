@@ -19,6 +19,7 @@
               conan
               jq
               just
+              termshark
             ];
           };
         }
