@@ -23,6 +23,7 @@ words = [
     "stringview",
     "tcpdump",
     "termshark",
+    "tshark",
     "udp",
     "werror",
     "wireshark",

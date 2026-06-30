@@ -30,9 +30,12 @@ fmt-check:
     git ls-files -z '*.cpp' '*.hpp' | xargs -0 clang-format --dry-run --Werror \
         && echo 'Formatting check passed'
 
-# Open a PCAP file in Termshark
+# Read a PCAP file with Termshark (if present) or TShark
 inspect pcap:
-    termshark -r {{ pcap }}
+    @if command -v termshark >/dev/null 2>&1; then termshark -r {{ pcap }}; \
+    elif command -v tshark >/dev/null 2>&1; then tshark -r {{ pcap }}; \
+    else echo 'Neither termshark nor tshark found' >&2; exit 1; \
+    fi
 
 # Remove build artifacts
 clean:
