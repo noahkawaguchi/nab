@@ -1,7 +1,7 @@
 # Build the project (default recipe)
 build:
     if ! test -d build; then \
-        conan install . --output-folder=build --build=missing; \
+        conan install . --output-folder=build --build=missing --profile:all=profiles/detect; \
         cmake -B build -DCMAKE_TOOLCHAIN_FILE=build/conan_toolchain.cmake \
             -DCMAKE_BUILD_TYPE=Release; \
     fi
