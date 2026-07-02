@@ -15,6 +15,7 @@ words = [
     "ipv",
     "libcxx",
     "libpcap",
+    "lifecycle",
     "nixos",
     "nixpkgs",
     "nullopt",
