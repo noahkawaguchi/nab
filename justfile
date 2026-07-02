@@ -32,9 +32,12 @@ clean:
 # Testing and quality
 ####################################################################################################
 
+# Run tests, lints, format checking, and spell checking to match CI
+all-checks: (test '--progress') lint fmt-check spell-check
+
 # Build and run tests
-test: build
-    ctest --test-dir build --output-on-failure
+test *ARGS: build
+    ctest --test-dir build --output-on-failure {{ ARGS }}
 
 # Build and lint with Clang-Tidy
 lint: build
@@ -45,6 +48,10 @@ lint: build
 fmt-check:
     git ls-files -z '*.cpp' '*.hpp' | xargs -0 clang-format --dry-run --Werror \
         && echo 'Formatting check passed'
+
+# Check spelling with Codebook
+spell-check:
+    git ls-files -z | xargs -0 codebook-lsp lint
 
 ####################################################################################################
 # Other convenience
