@@ -98,7 +98,7 @@ Packets written to: example.pcap
 - `sudo` privileges or equivalent for capturing network packets (on Linux, specifically CAP_NET_RAW and CAP_NET_ADMIN)
 - For [Nix](https://github.com/NixOS/nix) users, the toolchain is included as a flake.
 - Otherwise, the following toolchain must be installed:
-  - C++23 compiler such as GCC 14+ or Clang 18+ (tested with GCC 14 and 15)
+  - C++23 compiler such as GCC 14+ or Clang 18+ (tested with GCC 15 and Clang 21 in CI)
   - CMake 3.25+
   - Conan 2.x
   - The command runner [Just](https://github.com/casey/just)
@@ -145,3 +145,4 @@ With the binary running, create some network activity (e.g. `curl example.com`) 
 - **Concurrency** - Thread-safe packet handling with atomics and condition variables
 - **Testing** - Comprehensive test suite with Catch2 covering edge cases (truncated packets, invalid data)
 - **Modern tooling** - Conan package management, CMake build system, `clang-tidy` static analysis
+- **Continuous integration** - Tests, linting, formatting checks, and spell checks in CI that must all pass before a branch is merged into main
