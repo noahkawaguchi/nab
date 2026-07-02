@@ -1,0 +1,84 @@
+name: CI
+
+permissions: { contents: read }
+
+on:
+  push: { branches: [main] }
+  pull_request: { branches: [main] }
+  workflow_dispatch: {}
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix: { os: [ubuntu-24.04-arm, ubuntu-24.04, macos-26] }
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - &checkout
+        uses: actions/checkout@v7
+        with: { persist-credentials: false }
+
+      - &nix-install
+        name: Install Nix
+        uses: nixbuild/nix-quick-install-action@v35
+
+      - &nix-cache
+        name: Cache Nix store
+        uses: nix-community/cache-nix-action@v7
+        with:
+          primary-key: >-
+            nix-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('**/*.nix', '**/flake.lock') }}
+          restore-prefixes-first-match: nix-${{ runner.os }}-${{ runner.arch }}-
+          # Purge matching prefixes last accessed more than 7 days ago
+          purge: true
+          purge-prefixes: nix-${{ runner.os }}-${{ runner.arch }}-
+          purge-last-accessed: P7D
+
+      - &conan-cache
+        name: Cache Conan packages
+        uses: actions/cache@v6
+        with:
+          path: ~/.conan2/p
+          key: >-
+            conan-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('conanfile.txt',
+            'profiles/**') }}
+          restore-keys: conan-${{ runner.os }}-${{ runner.arch }}-
+
+      - name: Run tests
+        run: nix develop --command just test
+
+  lint:
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - *checkout
+      - *nix-install
+      - *nix-cache
+      - *conan-cache
+      - name: Run lints
+        run: nix develop --command just lint
+
+  fmt-check:
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - *checkout
+      - *nix-install
+      - *nix-cache
+      - name: Check formatting
+        run: nix develop --command just fmt-check
+
+  spell-check:
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - *checkout
+      - *nix-install
+      - *nix-cache
+      - name: Check spelling
+        run: nix develop --command just spell-check
+
+  all-checks:
+    runs-on: ubuntu-slim
+    permissions: {}
+    needs: [test, lint, fmt-check, spell-check]
+    steps:
+      - run: echo 'All checks passed!'
