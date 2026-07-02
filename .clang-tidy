@@ -1,3 +1,5 @@
+HeaderFilterRegex: .*/(src|tests)/.*\.(h|hpp)
+
 Checks: >
   bugprone-*,
   cert-*,

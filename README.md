@@ -1,5 +1,3 @@
-[English](README.md) | [日本語](README.ja.md)
-
 # Nab
 
 A lightweight, modern C++23 network packet capture and analysis tool.
@@ -97,47 +95,47 @@ Packets written to: example.pcap
 
 ### Prerequisites
 
-- C++23 compiler such as GCC 14+ or Clang 18+ (tested with GCC 14 and 15)
-- CMake 3.25+
-- Conan 2.x
-- [Just](https://github.com/casey/just) command runner (optional)
-- System packet capture library such as `libpcap`
-- `sudo` privileges to capture network packets (if using Linux, specifically CAP_NET_RAW and CAP_NET_ADMIN)
+- `sudo` privileges or equivalent for capturing network packets (on Linux, specifically CAP_NET_RAW and CAP_NET_ADMIN)
+- For [Nix](https://github.com/NixOS/nix) users, the toolchain is included as a flake.
+- Otherwise, the following toolchain must be installed:
+  - C++23 compiler such as GCC 14+ or Clang 18+ (tested with GCC 15 and Clang 21 in CI)
+  - CMake 3.25+
+  - Conan 2.x
+  - The command runner [Just](https://github.com/casey/just)
+  - `clang-tidy` and `clang-format` (only if linting/formatting)
+  - [Termshark](https://github.com/gcla/termshark) or [TShark](https://www.wireshark.org/docs/man-pages/tshark.html) (only if inspecting PCAP files)
 
-### Build Steps
+### Steps
 
-Using `just`:
+#### Development tasks
 
 ```bash
-just rebuild
-just test
-sudo just run # Or to pass args: sudo just run [args]
+just test            # Run tests with Catch2
+just lint            # Lint with Clang-Tidy
+just fmt-check       # Check formatting with Clang-Format
+just inspect <pcap>  # Read the PCAP file <pcap> with Termshark or TShark
+```
 
-# Or to grant granular capabilities rather than running as root (Linux only)
+#### Running the binary
+
+For Linux, there is a dedicated `caps` recipe to grant the binary granular capabilities and avoid running it as root.
+
+```bash
 sudo just caps
-just run # [args]
+just run
+# Or to pass args: just run [args]
 ```
 
-Or running the commands manually:
+On non-Linux, it may be necessary to run the binary with elevated privileges.
 
 ```bash
-# Install dependencies and configure
-conan install . --output-folder=build --build=missing
-cmake -B build -DCMAKE_TOOLCHAIN_FILE=build/conan_toolchain.cmake -DCMAKE_BUILD_TYPE=Release
-
-# Build
-cmake --build build
-
-# Run tests
-ctest --test-dir build --output-on-failure
-
-# Run the program
-sudo ./build/nab # Or to pass args: sudo ./build/nab [args]
-
-# Or to grant granular capabilities rather than running as root (Linux only)
-sudo setcap cap_net_raw,cap_net_admin+ep ./build/nab
-./build/nab # [args]
+sudo just run
+# Or to pass args: sudo just run [args]
 ```
+
+You can also inspect the [`justfile`](justfile) and run any recipe manually.
+
+With the binary running, create some network activity (e.g. `curl example.com`) to see the traffic captured.
 
 ## Technical Highlights
 
@@ -147,3 +145,4 @@ sudo setcap cap_net_raw,cap_net_admin+ep ./build/nab
 - **Concurrency** - Thread-safe packet handling with atomics and condition variables
 - **Testing** - Comprehensive test suite with Catch2 covering edge cases (truncated packets, invalid data)
 - **Modern tooling** - Conan package management, CMake build system, `clang-tidy` static analysis
+- **Continuous integration** - Tests, linting, formatting checks, and spell checks in CI that must all pass before a branch is merged into main
