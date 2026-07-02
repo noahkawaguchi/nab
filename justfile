@@ -1,5 +1,11 @@
-# Regular iterative build (default recipe)
+# Build the project (default recipe)
 build:
+    if ! test -d build; then \
+        conan install . --output-folder=build --build=missing; \
+        cmake -B build -DCMAKE_TOOLCHAIN_FILE=build/conan_toolchain.cmake \
+            -DCMAKE_BUILD_TYPE=Release; \
+    fi
+
     cmake --build build
 
 # Grant the binary the necessary capabilities
@@ -10,11 +16,6 @@ caps: build
 # Build and run the main executable
 run *ARGS: build
     ./build/nab {{ ARGS }}
-
-# Full clean rebuild
-rebuild: clean && build
-    conan install . --output-folder=build --build=missing
-    cmake -B build -DCMAKE_TOOLCHAIN_FILE=build/conan_toolchain.cmake -DCMAKE_BUILD_TYPE=Release
 
 # Build and run tests
 test: build
@@ -36,6 +37,9 @@ inspect pcap:
     elif command -v tshark >/dev/null 2>&1; then tshark -r {{ pcap }}; \
     else echo 'Neither termshark nor tshark found' >&2; exit 1; \
     fi
+
+# Full clean rebuild
+rebuild: clean build
 
 # Remove build artifacts
 clean:

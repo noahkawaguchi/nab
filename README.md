@@ -110,11 +110,9 @@ Packets written to: example.pcap
 #### Development tasks
 
 ```bash
-just rebuild         # Full clean rebuild or initial build
-just                 # Regular iterative build
 just test            # Run tests with Catch2
-just fmt-check       # Check formatting with Clang-Format
 just lint            # Lint with Clang-Tidy
+just fmt-check       # Check formatting with Clang-Format
 just inspect <pcap>  # Read the PCAP file <pcap> with Termshark or TShark
 ```
 
