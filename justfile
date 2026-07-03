@@ -1,25 +1,31 @@
 ####################################################################################################
+# Config
+####################################################################################################
+
+preset := '--preset conan-release'
+bin-dir := 'build/Release'
+
+####################################################################################################
 # Build lifecycle
 ####################################################################################################
 
 # Build the project (default recipe)
 build:
     if ! test -d build; then \
-        conan install . --output-folder=build --build=missing --profile:all=profiles/detect; \
-        cmake -B build -DCMAKE_TOOLCHAIN_FILE=build/conan_toolchain.cmake \
-            -DCMAKE_BUILD_TYPE=Release; \
+        conan install . --build=missing --profile:all=profiles/detect; \
+        cmake {{ preset }}; \
     fi
 
-    cmake --build build
+    cmake --build {{ preset }}
 
 # Grant the binary the necessary capabilities
 [linux]
 caps: build
-    setcap cap_net_raw,cap_net_admin+ep ./build/nab
+    setcap cap_net_raw,cap_net_admin+ep {{ bin-dir }}/nab
 
 # Build and run the main executable
 run *ARGS: build
-    ./build/nab {{ ARGS }}
+    ./{{ bin-dir }}/nab {{ ARGS }}
 
 # Full clean rebuild
 rebuild: clean build
@@ -37,12 +43,12 @@ all-checks: (test '--progress') lint fmt-check spell-check
 
 # Build and run tests
 test *ARGS: build
-    ctest --test-dir build --output-on-failure {{ ARGS }}
+    ctest {{ preset }} --output-on-failure {{ ARGS }}
 
 # Build and lint with Clang-Tidy
 lint: build
-    clang-tidy -p build --quiet --use-color --warnings-as-errors='*' \
-        $(jq -r '.[].file' build/compile_commands.json | sort -u)
+    clang-tidy -p {{ bin-dir }} --quiet --use-color --warnings-as-errors='*' \
+        $(jq -r '.[].file' {{ bin-dir }}/compile_commands.json | sort -u)
 
 # Check formatting with Clang-Format
 fmt-check:
