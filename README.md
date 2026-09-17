@@ -16,12 +16,12 @@ Built as a learning project to gain experience with networking concepts and mode
 
 ## Features
 
-- **Live packet capture** - Captures packets from network interfaces
-- **Protocol filtering** - Filters for TCP, UDP, ICMP, or IGMP
-- **Port and host filtering** - Filters by source/destination IP or port
-- **Service recognition** - Identifies HTTP, HTTPS, DNS, and SSH
-- **PCAP file export** - Saves captures for analysis in Wireshark, `tcpdump`, or similar
-- **Graceful shutdown** - Exits cleanly with a statistics summary on Ctrl+C
+- Captures packets live from network interfaces
+- Filters for TCP, UDP, ICMP, or IGMP
+- Filters by source/destination IP or port
+- Identifies HTTP, HTTPS, DNS, and SSH
+- Saves captures as PCAP files for analysis in Wireshark, `tcpdump`, or similar
+- Shuts down gracefully with a statistics summary on Ctrl+C
 
 ## Example Usage
 
@@ -42,7 +42,11 @@ Built as a learning project to gain experience with networking concepts and mode
 ./nab --port 443 -o https_traffic.pcap
 ```
 
-### Sample output:
+### Sample Output
+
+<details>
+<summary><i>Sample output (click to expand)</i></summary>
+<br />
 
 ```
 Writing packets to: example.pcap
@@ -90,6 +94,8 @@ Total packets captured: 52
 
 Packets written to: example.pcap
 ```
+
+</details>
 
 ## Building
 
@@ -139,10 +145,10 @@ With the binary running, create some network activity (e.g. `curl example.com`) 
 
 ## Technical Highlights
 
-- **Modern C++23** - Latest features and idioms such as `std::optional`, `std::ranges`, `std::print`, brace initialization, trailing return types, and const correctness
-- **Low-level networking** - Manual parsing of Ethernet and IPv4 headers from raw bytes
-- **Memory safety** - `std::span` and `std::string_view` for zero-copy buffer access, smart pointers for RAII
-- **Concurrency** - Thread-safe packet handling with atomics and condition variables
-- **Testing** - Comprehensive test suite with Catch2 covering edge cases (truncated packets, invalid data)
-- **Modern tooling** - Conan package management, CMake build system, `clang-tidy` static analysis
-- **Continuous integration** - Tests, linting, formatting checks, and spell checks in CI that must all pass before a branch is merged into main
+- Modern C++23 features and idioms such as `std::optional`, `std::ranges`, `std::print`, brace initialization, trailing return types, and const correctness
+- Manual parsing of Ethernet and IPv4 headers from raw bytes
+- Memory management with `std::span` and `std::string_view` for zero-copy buffer access and smart pointers for RAII
+- Thread-safe packet handling with atomics and condition variables
+- Comprehensive test suite with Catch2 covering edge cases (truncated packets, invalid data)
+- Conan package management, CMake build system, and `clang-tidy` static analysis
+- Tests, linting, formatting checks, and spell checks in CI that must all pass before a branch is merged into main
