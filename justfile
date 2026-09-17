@@ -4,6 +4,7 @@
 
 preset := '--preset conan-release'
 bin-dir := 'build/Release'
+bin := 'nab'
 
 ####################################################################################################
 # Build lifecycle
@@ -21,11 +22,11 @@ build:
 # Grant the binary the necessary capabilities
 [linux]
 caps: build
-    setcap cap_net_raw,cap_net_admin+ep {{ bin-dir }}/nab
+    setcap cap_net_raw,cap_net_admin+ep {{ bin-dir }}/{{ bin }}
 
 # Build and run the main executable
 run *ARGS: build
-    ./{{ bin-dir }}/nab {{ ARGS }}
+    ./{{ bin-dir }}/{{ bin }} {{ ARGS }}
 
 # Full clean rebuild
 rebuild: clean build
@@ -48,7 +49,7 @@ test *ARGS: build
 # Build and lint with Clang-Tidy
 lint: build
     clang-tidy -p {{ bin-dir }} --quiet --use-color --warnings-as-errors='*' \
-        $(jq -r '.[].file' {{ bin-dir }}/compile_commands.json | sort -u)
+        ${CLANG_TIDY_EXTRA_ARGS:-} $(jq -r '.[].file' {{ bin-dir }}/compile_commands.json | sort -u)
 
 # Check formatting with Clang-Format
 fmt-check:

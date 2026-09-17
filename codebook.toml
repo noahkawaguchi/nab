@@ -1,4 +1,5 @@
 words = [
+    "ECN",
     "EOF",
     "bugprone",
     "cmake",
@@ -16,6 +17,7 @@ words = [
     "ipv",
     "libcxx",
     "libpcap",
+    "libstdc",
     "lifecycle",
     "nixbuild",
     "nixos",
@@ -25,6 +27,7 @@ words = [
     "pkgs",
     "raii",
     "setcap",
+    "stdenv",
     "stringview",
     "tcpdump",
     "termshark",
