@@ -17,6 +17,7 @@ words = [
     "ipv",
     "libcxx",
     "libpcap",
+    "libstdc",
     "lifecycle",
     "nixbuild",
     "nixos",

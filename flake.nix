@@ -22,17 +22,12 @@
             ];
 
             shellHook =
+              # Clang-Tidy does its own separate GCC toolchain auto-detection, which finds the
+              # system libstdc++ in CI independent of the CC/CXX environment variables, so pass this
+              # through to be read in the `justfile` recipe
               if pkgs.stdenv.isLinux then
                 ''
-                  export CC=${pkgs.gcc}/bin/gcc
-                  export CXX=${pkgs.gcc}/bin/g++
-
                   export CLANG_TIDY_EXTRA_ARGS="--extra-arg=--gcc-toolchain=${pkgs.gcc.cc}"
-                ''
-              else if pkgs.stdenv.isDarwin then
-                ''
-                  export CC=${pkgs.clang}/bin/clang
-                  export CXX=${pkgs.clang}/bin/clang++
                 ''
               else
                 "";
