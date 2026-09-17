@@ -4,6 +4,7 @@
 
 preset := '--preset conan-release'
 bin-dir := 'build/Release'
+bin := 'nab'
 
 ####################################################################################################
 # Build lifecycle
@@ -21,11 +22,11 @@ build:
 # Grant the binary the necessary capabilities
 [linux]
 caps: build
-    setcap cap_net_raw,cap_net_admin+ep {{ bin-dir }}/nab
+    setcap cap_net_raw,cap_net_admin+ep {{ bin-dir }}/{{ bin }}
 
 # Build and run the main executable
 run *ARGS: build
-    ./{{ bin-dir }}/nab {{ ARGS }}
+    ./{{ bin-dir }}/{{ bin }} {{ ARGS }}
 
 # Full clean rebuild
 rebuild: clean build
