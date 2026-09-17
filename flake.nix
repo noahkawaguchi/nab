@@ -20,6 +20,20 @@
               just
               termshark
             ];
+
+            shellHook =
+              if pkgs.stdenv.isLinux then
+                ''
+                  export CC=${pkgs.gcc}/bin/gcc
+                  export CXX=${pkgs.gcc}/bin/g++
+                ''
+              else if pkgs.stdenv.isDarwin then
+                ''
+                  export CC=${pkgs.clang}/bin/clang
+                  export CXX=${pkgs.clang}/bin/clang++
+                ''
+              else
+                "";
           };
         }
       );
