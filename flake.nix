@@ -26,6 +26,8 @@
                 ''
                   export CC=${pkgs.gcc}/bin/gcc
                   export CXX=${pkgs.gcc}/bin/g++
+
+                  export CLANG_TIDY_EXTRA_ARGS="--extra-arg=--gcc-toolchain=${pkgs.gcc.cc}"
                 ''
               else if pkgs.stdenv.isDarwin then
                 ''

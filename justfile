@@ -49,7 +49,7 @@ test *ARGS: build
 # Build and lint with Clang-Tidy
 lint: build
     clang-tidy -p {{ bin-dir }} --quiet --use-color --warnings-as-errors='*' \
-        $(jq -r '.[].file' {{ bin-dir }}/compile_commands.json | sort -u)
+        ${CLANG_TIDY_EXTRA_ARGS:-} $(jq -r '.[].file' {{ bin-dir }}/compile_commands.json | sort -u)
 
 # Check formatting with Clang-Format
 fmt-check:
