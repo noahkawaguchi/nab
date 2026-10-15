@@ -33,7 +33,7 @@ rebuild: clean build
 
 # Remove build artifacts
 clean:
-    rm -rf build
+    -test -d build && du -sh build && rm -rf build && echo 'cleaned'
 
 ####################################################################################################
 # Testing and quality
