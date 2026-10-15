@@ -56,6 +56,10 @@ fmt-check:
     git ls-files -z '*.cpp' '*.hpp' | xargs -0 clang-format --dry-run --Werror \
         && echo 'Formatting check passed'
 
+# Apply Clang-Format changes
+fmt:
+    git ls-files -z '*.cpp' '*.hpp' | xargs -0 clang-format -i
+
 # Check spelling with Codebook
 spell-check:
     git ls-files -z | xargs -0 codebook-lsp lint
