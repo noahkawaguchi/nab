@@ -1,5 +1,7 @@
 # Nab
 
+[![CI](https://github.com/noahkawaguchi/nab/actions/workflows/ci.yml/badge.svg)](https://github.com/noahkawaguchi/nab/actions/workflows/ci.yml)
+
 A lightweight, modern C++23 network packet capture and analysis tool.
 
 ## Table of Contents
