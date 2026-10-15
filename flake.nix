@@ -25,7 +25,7 @@
               # Clang-Tidy does its own separate GCC toolchain auto-detection, which finds the
               # system libstdc++ in CI independent of the CC/CXX environment variables, so pass this
               # through to be read in the `justfile` recipe
-              if pkgs.stdenv.isLinux then
+              if pkgs.stdenv.hostPlatform.isLinux then
                 ''
                   export CLANG_TIDY_EXTRA_ARGS="--extra-arg=--gcc-toolchain=${pkgs.gcc.cc}"
                 ''
