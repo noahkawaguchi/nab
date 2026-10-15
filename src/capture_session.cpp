@@ -23,9 +23,11 @@
 namespace {
 
 /// Prints packet information to stdout.
-void print_packet(const pcpp::RawPacket *const raw_packet, const nab::ParsedPacket &parsed,
-                  const int count) {
-
+void print_packet(
+  const pcpp::RawPacket *const raw_packet,
+  const nab::ParsedPacket     &parsed,
+  const int                    count
+) {
   const int              len{raw_packet->getRawDataLen()};
   const std::string_view src_ip{parsed.src_ip.value_or("<unknown source IP>")};
   const std::string_view dst_ip{parsed.dst_ip.value_or("<unknown destination IP>")};
@@ -34,13 +36,25 @@ void print_packet(const pcpp::RawPacket *const raw_packet, const nab::ParsedPack
   if (parsed.protocol == nab::Protocol::Tcp || parsed.protocol == nab::Protocol::Udp) {
     // TCP/UDP packets should have ports, but handle truncated packets gracefully
     if (!parsed.src_port.has_value() || !parsed.dst_port.has_value()) {
-      std::println("#{}: {} -> {} {} (truncated, no ports) {}B", count, src_ip, dst_ip,
-                   protocol_to_string(parsed.protocol), len);
+      std::println(
+        "#{}: {} -> {} {} (truncated, no ports) {}B",
+        count,
+        src_ip,
+        dst_ip,
+        protocol_to_string(parsed.protocol),
+        len
+      );
       return;
     }
 
-    std::print("#{}: {}:{} -> {}:{} ", count, src_ip, parsed.src_port.value(), dst_ip,
-               parsed.dst_port.value());
+    std::print(
+      "#{}: {}:{} -> {}:{} ",
+      count,
+      src_ip,
+      parsed.src_port.value(),
+      dst_ip,
+      parsed.dst_port.value()
+    );
 
     // Protocol name
     std::print("{}", protocol_to_string(parsed.protocol));
@@ -59,8 +73,14 @@ void print_packet(const pcpp::RawPacket *const raw_packet, const nab::ParsedPack
     std::println(" {}B", len);
   } else {
     // Non-TCP/UDP protocols (ICMP, etc.)
-    std::println("#{}: {} -> {} {} {}B", count, src_ip, dst_ip, protocol_to_string(parsed.protocol),
-                 len);
+    std::println(
+      "#{}: {} -> {} {} {}B",
+      count,
+      src_ip,
+      dst_ip,
+      protocol_to_string(parsed.protocol),
+      len
+    );
   }
 }
 
@@ -145,10 +165,11 @@ void CaptureSession::stop() {
   stop_cv_.notify_one();
 }
 
-void CaptureSession::packet_callback(const pcpp::RawPacket *const raw_packet,
-                                     const pcpp::PcapLiveDevice *const /*device*/,
-                                     void *const cookie) {
-
+void CaptureSession::packet_callback(
+  const pcpp::RawPacket *const raw_packet,
+  const pcpp::PcapLiveDevice *const /*device*/,
+  void *const cookie
+) {
   // Cast cookie back to CaptureSession instance
   auto *const session = static_cast<CaptureSession *>(cookie);
   session->handle_packet(raw_packet);

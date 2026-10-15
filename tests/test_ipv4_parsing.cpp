@@ -83,10 +83,12 @@ TEST_CASE("parse_ipv4_packet identifies different protocols", "[ipv4]") {
 }
 
 TEST_CASE("parse_ipv4_packet rejects truncated packets", "[ipv4]") {
-  // Only Ethernet header, no IPv4 header
+  // clang-format off
   static constexpr std::array<std::uint8_t, 14> packet{
+    // Only Ethernet header, no IPv4 header
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x08, 0x00,
   };
+  // clang-format on
 
   CHECK_FALSE(parse_ipv4_packet(std::span{packet}).has_value());
 }

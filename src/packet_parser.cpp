@@ -85,10 +85,10 @@ auto parse_ipv4_packet(const std::span<const std::uint8_t> packet) -> std::optio
       // Both TCP and UDP have ports at the same location
       // Bytes 0-1: source port (big-endian)
       // Bytes 2-3: destination port (big-endian)
-      parsed.src_port =
-        static_cast<std::uint16_t>((transport_header[0] << 8) | transport_header[1]);
-      parsed.dst_port =
-        static_cast<std::uint16_t>((transport_header[2] << 8) | transport_header[3]);
+      parsed
+        .src_port = static_cast<std::uint16_t>((transport_header[0] << 8) | transport_header[1]);
+      parsed
+        .dst_port = static_cast<std::uint16_t>((transport_header[2] << 8) | transport_header[3]);
 
       // NOLINTEND(cppcoreguidelines-avoid-magic-numbers,readability-magic-numbers)
     }
