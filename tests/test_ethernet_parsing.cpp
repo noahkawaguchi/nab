@@ -42,8 +42,8 @@ TEST_CASE("parse_ethernet_header identifies ARP packets", "[ethernet]") {
 
 TEST_CASE("parse_ethernet_header rejects truncated packets", "[ethernet]") {
   // Only 10 bytes instead of required 14
-  static constexpr std::array<std::uint8_t, 10> packet{0x00, 0x11, 0x22, 0x33, 0x44,
-                                                       0x55, 0xAA, 0xBB, 0xCC, 0xDD};
+  static constexpr std::array<std::uint8_t, 10>
+    packet{0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0xAA, 0xBB, 0xCC, 0xDD};
 
   CHECK_FALSE(parse_ethernet_header(std::span{packet}).has_value());
 }

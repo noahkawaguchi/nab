@@ -1,16 +1,28 @@
+# Shared between C and C++
+AlignAfterOpenBracket: BlockIndent
 AlignConsecutiveAssignments: Consecutive
 AlignConsecutiveDeclarations: Consecutive
 AlignConsecutiveMacros: Consecutive
 AlignConsecutiveShortCaseStatements: { Enabled: true }
 AlignOperands: false
+AllowAllArgumentsOnNextLine: false
+AllowAllParametersOfDeclarationOnNextLine: false
 AllowShortBlocksOnASingleLine: Always
 AllowShortCaseLabelsOnASingleLine: true
 AllowShortFunctionsOnASingleLine: All
 AllowShortIfStatementsOnASingleLine: AllIfsAndElse
 AllowShortLoopsOnASingleLine: true
+BinPackArguments: false
+BinPackParameters: OnePerLine
 BreakBeforeBinaryOperators: NonAssignment
+InsertNewlineAtEOF: true
+PenaltyBreakBeforeMemberAccess: 0
+
+# Different between C and C++
 ColumnLimit: 100
 ContinuationIndentWidth: 2
 IndentWidth: 2
-InsertNewlineAtEOF: true
+
+# Only used in C++
+ConstructorInitializerIndentWidth: 2
 LambdaBodyIndentation: OuterScope

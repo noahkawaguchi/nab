@@ -1,5 +1,7 @@
 # Nab
 
+[![CI](https://github.com/noahkawaguchi/nab/actions/workflows/ci.yml/badge.svg)](https://github.com/noahkawaguchi/nab/actions/workflows/ci.yml)
+
 A lightweight, modern C++23 network packet capture and analysis tool.
 
 ## Table of Contents
@@ -104,7 +106,7 @@ Packets written to: example.pcap
 - `sudo` privileges or equivalent for capturing network packets (on Linux, specifically CAP_NET_RAW and CAP_NET_ADMIN)
 - For [Nix](https://github.com/NixOS/nix) users, the toolchain is included as a flake.
 - Otherwise, the following toolchain must be installed:
-  - C++23 compiler such as GCC 14+ or Clang 18+ (tested with GCC 15 and Clang 21 in CI)
+  - C++23 compiler such as GCC 14+ or Clang 18+ (tested with GCC 16 and Clang 21 in CI)
   - CMake 3.25+
   - Conan 2.x
   - The command runner [Just](https://github.com/casey/just)

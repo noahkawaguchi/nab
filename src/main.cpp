@@ -66,8 +66,11 @@ auto parse_args(const std::span<const char *const> args)
       protocol.emplace(nab::parse_protocol(protocol_arg));
 
       if (protocol == nab::Protocol::Unknown) {
-        std::println(stderr, "Invalid protocol: {}\nValid protocols: tcp, udp, icmp, igmp",
-                     protocol_arg);
+        std::println(
+          stderr,
+          "Invalid protocol: {}\nValid protocols: tcp, udp, icmp, igmp",
+          protocol_arg
+        );
         return 0;
       }
     }
@@ -104,12 +107,14 @@ auto parse_args(const std::span<const char *const> args)
 
     else if (arg == "--help" || arg == "-h") {
       std::println("Usage: {} [options]", args[0]);
-      std::print("Options:\n"
-                 "  -o <file>          Write captured packets to pcap file\n"
-                 "  --protocol <proto> Filter by protocol (tcp, udp, icmp)\n"
-                 "  --port <num>       Filter by port (source or destination)\n"
-                 "  --host <ip>        Filter by IP address (source or destination)\n"
-                 "  -h, --help         Show this help message\n");
+      std::print(
+        "Options:\n"
+        "  -o <file>          Write captured packets to pcap file\n"
+        "  --protocol <proto> Filter by protocol (tcp, udp, icmp)\n"
+        "  --port <num>       Filter by port (source or destination)\n"
+        "  --host <ip>        Filter by IP address (source or destination)\n"
+        "  -h, --help         Show this help message\n"
+      );
       return 0;
     }
 
@@ -119,8 +124,10 @@ auto parse_args(const std::span<const char *const> args)
     }
   }
 
-  return std::make_unique<nab::CaptureSession>(nab::PacketFilter{protocol, port, host},
-                                               output_file_name);
+  return std::make_unique<nab::CaptureSession>(
+    nab::PacketFilter{protocol, port, host},
+    output_file_name
+  );
 }
 
 // NOLINTEND(readability-function-cognitive-complexity)

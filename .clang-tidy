@@ -15,4 +15,5 @@ Checks: >
   portability-*,
   -portability-avoid-pragma-once,
   readability-*,
+  -readability-avoid-nested-conditional-operator,
   -readability-identifier-length,

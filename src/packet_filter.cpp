@@ -34,7 +34,8 @@ auto PacketFilter::description() const -> std::string {
     "Active filter(s):{}{}{}",
     protocol_.has_value() ? std::format(" protocol={}", protocol_to_string(*protocol_)) : "",
     port_.has_value() ? std::format(" port={}", *port_) : "",
-    host_.has_value() ? std::format(" host={}", *host_) : "");
+    host_.has_value() ? std::format(" host={}", *host_) : ""
+  );
 }
 
 } // namespace nab
