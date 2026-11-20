@@ -28,12 +28,9 @@ jobs:
         uses: nix-community/cache-nix-action@v7
         with:
           primary-key: >-
-            nix-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('**/*.nix', '**/flake.lock') }}
+            nix-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('**/*.nix',
+            '**/flake.lock') }}
           restore-prefixes-first-match: nix-${{ runner.os }}-${{ runner.arch }}-
-          # Purge matching prefixes last accessed more than 7 days ago
-          purge: true
-          purge-prefixes: nix-${{ runner.os }}-${{ runner.arch }}-
-          purge-last-accessed: P7D
 
       - &conan-cache
         name: Cache Conan packages
@@ -41,8 +38,8 @@ jobs:
         with:
           path: ~/.conan2/p
           key: >-
-            conan-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('conanfile.txt',
-            'profiles/**') }}
+            conan-${{ runner.os }}-${{ runner.arch }}-${{
+            hashFiles('conanfile.txt', 'profiles/**') }}
           restore-keys: conan-${{ runner.os }}-${{ runner.arch }}-
 
       - name: Run tests
