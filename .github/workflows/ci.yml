@@ -30,10 +30,6 @@ jobs:
           primary-key: >-
             nix-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('**/*.nix', '**/flake.lock') }}
           restore-prefixes-first-match: nix-${{ runner.os }}-${{ runner.arch }}-
-          # Purge matching prefixes last accessed more than 7 days ago
-          purge: true
-          purge-prefixes: nix-${{ runner.os }}-${{ runner.arch }}-
-          purge-last-accessed: P7D
 
       - &conan-cache
         name: Cache Conan packages
